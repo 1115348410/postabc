@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PostABC</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 20px;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .container {
+      text-align: center;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #4f46e5;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px;
+    }
+    .btn:hover {
+      background: #4338ca;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>PostABC API 调试工具</h2>
+    <p>点击下方按钮打开 API 调试界面</p>
+    <button id="openTab" class="btn">打开 API 调试界面</button>
+  </div>
+  <script type="module">
+    document.getElementById('openTab')?.addEventListener('click', async () => {
+      try {
+        await chrome.tabs.create({
+          url: chrome.runtime.getURL('api-tab.html'),
+        });
+        // 关闭弹窗
+        window.close();
+      } catch (error) {
+        console.error('Failed to open API tab:', error);
+        alert('无法打开 API 调试界面: ' + (error || 'Unknown error'));
+      }
+    });
+  </script>
+</body>
+</html>

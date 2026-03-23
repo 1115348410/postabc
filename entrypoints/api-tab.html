@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PostABC - API 调试工具</title>
+  <link rel="stylesheet" href="../src/styles/globals.css">
+</head>
+<body>
+  <div id="api-tab-app"></div>
+  <script type="module">
+    import React from 'react';
+    import ReactDOM from 'react-dom/client';
+    import '../src/styles/globals.css';
+
+    // 动态导入组件
+    import('../src/components/ApiTabPanel').then(({ default: ApiTabPanel }) => {
+      // 在浏览器环境中渲染
+      if (typeof window !== 'undefined' && document.getElementById('api-tab-app')) {
+        const rootElement = document.getElementById('api-tab-app');
+        if (rootElement) {
+          ReactDOM.createRoot(rootElement).render(
+            React.createElement(React.StrictMode, null,
+              React.createElement(ApiTabPanel, null)
+            )
+          );
+        }
+      }
+    });
+  </script>
+</body>
+</html>

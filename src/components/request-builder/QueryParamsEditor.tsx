@@ -1,0 +1,185 @@
+import React, { useState } from 'react';
+import type { QueryParam } from '../../types';
+
+interface QueryParamsEditorProps {
+  params: QueryParam[];
+  onChange: (params: QueryParam[]) => void;
+}
+
+export default function QueryParamsEditor({ params, onChange }: QueryParamsEditorProps) {
+  const [newKey, setNewKey] = useState('');
+  const [newValue, setNewValue] = useState('');
+
+  const handleAddParam = () => {
+    if (!newKey.trim()) {
+      return;
+    }
+
+    const newParam: QueryParam = {
+      key: newKey.trim(),
+      value: newValue.trim(),
+      enabled: true,
+    };
+
+    onChange([...params, newParam]);
+    setNewKey('');
+    setNewValue('');
+  };
+
+  const handleRemoveParam = (index: number) => {
+    onChange(params.filter((_, i) => i !== index));
+  };
+
+  const handleToggleParam = (index: number) => {
+    onChange(
+      params.map((p, i) => (i === index ? { ...p, enabled: !p.enabled } : p)),
+    );
+  };
+
+  const handleUpdateKey = (index: number, key: string) => {
+    onChange(
+      params.map((p, i) => (i === index ? { ...p, key } : p)),
+    );
+  };
+
+  const handleUpdateValue = (index: number, value: string) => {
+    onChange(
+      params.map((p, i) => (i === index ? { ...p, value } : p)),
+    );
+  };
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
+        <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Query Params</span>
+        <span className="text-gray-400 dark:text-gray-600 text-xs">
+          {params.filter((p) => p.enabled).length} active
+        </span>
+      </div>
+
+      <div className="flex-1 overflow-auto p-4">
+        {/* Add new parameter - always at top */}
+        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newKey}
+              onChange={(e) => setNewKey(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddParam();
+                }
+              }}
+              placeholder="Key"
+              className="flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-primary-500"
+            />
+            <input
+              type="text"
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddParam();
+                }
+              }}
+              placeholder="Value"
+              className="flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-primary-500"
+            />
+            <button
+              onClick={handleAddParam}
+              disabled={!newKey.trim()}
+              className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-medium transition-colors"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        {/* Empty state */}
+        {params.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400 dark:text-gray-500 text-sm">No query parameters yet</p>
+          </div>
+        )}
+
+        {/* Params list */}
+        {params.length > 0 && (
+          <div className="space-y-2">
+            {params.map((param, index) => (
+              <div
+                key={index}
+                className={`flex items-center gap-2 p-2 rounded border ${
+                  param.enabled
+                    ? 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800'
+                    : 'border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-50'
+                }`}
+              >
+                <button
+                  onClick={() => handleToggleParam(index)}
+                  className={`w-5 h-5 flex items-center justify-center rounded border ${
+                    param.enabled
+                      ? 'border-primary-500 bg-primary-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  aria-label={param.enabled ? 'Disable' : 'Enable'}
+                >
+                  {param.enabled && (
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                </button>
+
+                <input
+                  type="text"
+                  value={param.key}
+                  onChange={(e) => handleUpdateKey(index, e.target.value)}
+                  placeholder="Key"
+                  className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                />
+
+                <input
+                  type="text"
+                  value={param.value}
+                  onChange={(e) => handleUpdateValue(index, e.target.value)}
+                  placeholder="Value"
+                  className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                />
+
+                <button
+                  onClick={() => handleRemoveParam(index)}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
+                  aria-label="Remove parameter"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
