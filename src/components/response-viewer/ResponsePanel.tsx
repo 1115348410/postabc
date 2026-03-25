@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useDevToolsStore } from '../../stores';
 import type { ResponseData, StreamConfig, StreamExtractionRule, SSEEvent } from '../../types';
+import JsonTreePreview from './JsonTreePreview';
+import ResponseBodyViewer from './ResponseBodyViewer';
 
 type Tab = 'body' | 'headers' | 'console';
 
@@ -582,24 +584,13 @@ export default function ResponsePanel({ streamConfig, onStreamConfigChange }: Re
           <div className="h-full overflow-auto">
             {currentResponse ? (
               <>
-                {/* JSON 响应 */}
-                {currentResponse.body.type === 'json' && (
-                  <div className="p-4">
-                    <pre className="text-gray-700 dark:text-gray-300 text-sm font-mono whitespace-pre-wrap">
-                      {typeof currentResponse.body.content === 'string'
-                        ? currentResponse.body.content
-                        : JSON.stringify(currentResponse.body.content, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {/* 文本响应 */}
-                {currentResponse.body.type === 'text' && (
-                  <div className="p-4">
-                    <pre className="text-gray-700 dark:text-gray-300 text-sm font-mono whitespace-pre-wrap">
-                      {String(currentResponse.body.content)}
-                    </pre>
-                  </div>
+                {/* JSON/文本响应 - 使用带格式化选项的查看器 */}
+                {(currentResponse.body.type === 'json' || currentResponse.body.type === 'text') && (
+                  <ResponseBodyViewer
+                    content={currentResponse.body.content}
+                    contentType={currentResponse.body.type}
+                    className="h-full"
+                  />
                 )}
 
                 {/* SSE 流式响应 */}
@@ -643,7 +634,7 @@ export default function ResponsePanel({ streamConfig, onStreamConfigChange }: Re
                         {key}
                       </td>
                       <td className="py-2 border-b border-gray-200 dark:border-gray-800 font-mono">
-                        {value}
+                        {String(value)}
                       </td>
                     </tr>
                   ))}

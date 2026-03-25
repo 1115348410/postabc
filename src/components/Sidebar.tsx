@@ -191,11 +191,36 @@ export default function Sidebar({ onSelectRequest, onOpenInNewTab, onSaveRequest
       // v2: getApiDetail 返回 ApiInfoItemDTO
       const detail = await apiClient.getApiDetail(api.uuid);
 
-      // 解析请求体内容
-      let requestBody = '';
+      // 解析请求体内容 - 根据 bodyType 解析
+      let body: RequestConfig['body'] = undefined;
       try {
-        if (detail.bodyContent) {
-          requestBody = detail.bodyContent;
+        if (detail.bodyContent && detail.bodyType) {
+          switch (detail.bodyType) {
+            case 'json':
+              body = { json: detail.bodyContent };
+              break;
+            case 'raw':
+              body = { raw: detail.bodyContent };
+              break;
+            case 'form-data':
+              try {
+                const formData = JSON.parse(detail.bodyContent);
+                body = { form: Array.isArray(formData) ? formData : [] };
+              } catch (e) {
+                console.warn('解析form-data失败:', e);
+                body = { form: [] };
+              }
+              break;
+            case 'urlencoded':
+              try {
+                const urlencodedData = JSON.parse(detail.bodyContent);
+                body = { urlencoded: Array.isArray(urlencodedData) ? urlencodedData : [] };
+              } catch (e) {
+                console.warn('解析urlencoded失败:', e);
+                body = { urlencoded: [] };
+              }
+              break;
+          }
         }
       } catch (e) {
         console.warn('解析bodyContent失败:', e);
@@ -238,9 +263,7 @@ export default function Sidebar({ onSelectRequest, onOpenInNewTab, onSaveRequest
         headers,
         queryParams,
         bodyType: (detail.bodyType || 'json') as RequestConfig['bodyType'],
-        body: requestBody ? {
-          json: requestBody,
-        } : undefined,
+        body,
       };
 
       // 优先使用onOpenInNewTab创建新Tab，否则使用onSelectRequest更新当前Tab

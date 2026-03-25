@@ -183,7 +183,24 @@ export default function SaveRequestDialog({
         if (h.enabled && h.key) headers[h.key] = h.value;
       });
 
-      const bodyContent = request.body?.json || request.body?.raw || '{}';
+      // 根据 bodyType 构建 bodyContent
+      let bodyContent = '{}';
+      switch (request.bodyType) {
+        case 'json':
+          bodyContent = request.body?.json || '{}';
+          break;
+        case 'raw':
+          bodyContent = request.body?.raw || '';
+          break;
+        case 'form-data':
+          bodyContent = request.body?.form ? JSON.stringify(request.body.form) : '[]';
+          break;
+        case 'urlencoded':
+          bodyContent = request.body?.urlencoded ? JSON.stringify(request.body.urlencoded) : '[]';
+          break;
+        default:
+          bodyContent = '{}';
+      }
 
       if (isEditMode && apiUuid) {
         // 编辑模式：更新已有接口

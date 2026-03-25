@@ -144,6 +144,11 @@ export class ProxyHandler {
         body = this.constructBody(request, environment);
       }
 
+      // 如果是 FormData，删除 Content-Type 头，让浏览器自动设置（包含 boundary）
+      if (body instanceof FormData) {
+        headers.delete('Content-Type');
+      }
+
       // Create abort controller for timeout
       const controller = new AbortController();
       timeoutId = setTimeout(
@@ -422,6 +427,11 @@ export class ProxyHandler {
       let body: string | FormData | undefined = undefined;
       if (request.method !== 'GET' && request.method !== 'HEAD') {
         body = this.constructBody(request, environment);
+      }
+
+      // 如果是 FormData，删除 Content-Type 头，让浏览器自动设置（包含 boundary）
+      if (body instanceof FormData) {
+        headers.delete('Content-Type');
       }
 
       console.log('[PostABC Background] 发送流式请求:', { url, method: request.method, headers: Object.fromEntries(headers.entries()) });

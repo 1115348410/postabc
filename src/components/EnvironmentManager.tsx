@@ -26,6 +26,34 @@ interface EnvironmentManagerProps {
   onVariablesChange?: (variables: Record<string, string>) => void;
 }
 
+// 类型守卫函数
+function isApiInfoEnvDTO(v: ApiInfoEnvDTO | LocalEnvVariable): v is ApiInfoEnvDTO {
+  return 'envKey' in v;
+}
+
+function getEnvId(v: ApiInfoEnvDTO | LocalEnvVariable): string {
+  if (isApiInfoEnvDTO(v)) {
+    return v.id !== undefined ? String(v.id) : v.envKey;
+  }
+  return v.id !== undefined ? String(v.id) : v.key;
+}
+
+function getEnvKey(v: ApiInfoEnvDTO | LocalEnvVariable): string {
+  return isApiInfoEnvDTO(v) ? v.envKey : v.key;
+}
+
+function getEnvValue(v: ApiInfoEnvDTO | LocalEnvVariable): string {
+  return isApiInfoEnvDTO(v) ? v.envValue : v.value;
+}
+
+function getEnvEnabled(v: ApiInfoEnvDTO | LocalEnvVariable): boolean {
+  return 'enabled' in v ? v.enabled : true;
+}
+
+function getEnvOriginalId(v: ApiInfoEnvDTO | LocalEnvVariable): number | undefined {
+  return 'id' in v && v.id !== undefined ? v.id : undefined;
+}
+
 // 从 chrome.storage 获取服务器配置
 const getServerBaseUrl = async (): Promise<string | null> => {
   return new Promise((resolve) => {
@@ -75,12 +103,12 @@ export default function EnvironmentManager({
         // 初始化编辑状态
         const initialEditingValues: Record<string, EditingVariable> = {};
         data.forEach(v => {
-          const id = 'id' in v && v.id !== undefined ? String(v.id) : ('envKey' in v ? v.envKey : v.key);
+          const id = getEnvId(v);
           initialEditingValues[id] = {
-            key: 'envKey' in v ? v.envKey : v.key,
-            value: 'envValue' in v ? v.envValue : v.value,
-            enabled: 'enabled' in v ? v.enabled : true,
-            originalId: 'id' in v ? v.id : undefined,
+            key: getEnvKey(v),
+            value: getEnvValue(v),
+            enabled: getEnvEnabled(v),
+            originalId: getEnvOriginalId(v),
           };
         });
         setEditingValues(initialEditingValues);
@@ -88,9 +116,9 @@ export default function EnvironmentManager({
         // 转换为键值对格式并缓存
         const varsMap: Record<string, string> = {};
         data.forEach(v => {
-          const enabled = 'enabled' in v ? v.enabled : true;
+          const enabled = getEnvEnabled(v);
           if (enabled) {
-            varsMap['envKey' in v ? v.envKey : v.key] = 'envValue' in v ? v.envValue : v.value;
+            varsMap[getEnvKey(v)] = getEnvValue(v);
           }
         });
         await saveEnvironmentVariables(data as ApiInfoEnvDTO[]);

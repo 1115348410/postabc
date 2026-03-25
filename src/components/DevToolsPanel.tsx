@@ -87,7 +87,7 @@ export default function DevToolsPanel() {
   }, []);
 
   const handleSendRequest = useCallback(async () => {
-      if (!url.trim()) {
+    if (!url.trim()) {
       setResponse({
         status: 0,
         statusText: 'URL is required',
@@ -102,7 +102,7 @@ export default function DevToolsPanel() {
         logs: [],
         request: {
           method,
-          url: sanitizedUrl,
+          url: url.trim(),
           headers: headers.filter((h) => h.enabled).reduce((acc, h) => ({ ...acc, [h.key]: h.value }), {}),
           body: bodyType !== 'none' ? (bodyType === 'json' ? jsonBody : rawBody) : undefined,
         },
