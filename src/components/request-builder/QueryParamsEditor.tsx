@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
-import type { QueryParam } from '../../types';
+import React, { useState } from "react";
+import type { QueryParam } from "../../types";
 
 interface QueryParamsEditorProps {
   params: QueryParam[];
   onChange: (params: QueryParam[]) => void;
 }
 
-export default function QueryParamsEditor({ params, onChange }: QueryParamsEditorProps) {
-  const [newKey, setNewKey] = useState('');
-  const [newValue, setNewValue] = useState('');
+export default function QueryParamsEditor({
+  params,
+  onChange,
+}: QueryParamsEditorProps) {
+  const [newKey, setNewKey] = useState("");
+  const [newValue, setNewValue] = useState("");
 
   const handleAddParam = () => {
     if (!newKey.trim()) {
@@ -22,8 +25,8 @@ export default function QueryParamsEditor({ params, onChange }: QueryParamsEdito
     };
 
     onChange([...params, newParam]);
-    setNewKey('');
-    setNewValue('');
+    setNewKey("");
+    setNewValue("");
   };
 
   const handleRemoveParam = (index: number) => {
@@ -37,21 +40,19 @@ export default function QueryParamsEditor({ params, onChange }: QueryParamsEdito
   };
 
   const handleUpdateKey = (index: number, key: string) => {
-    onChange(
-      params.map((p, i) => (i === index ? { ...p, key } : p)),
-    );
+    onChange(params.map((p, i) => (i === index ? { ...p, key } : p)));
   };
 
   const handleUpdateValue = (index: number, value: string) => {
-    onChange(
-      params.map((p, i) => (i === index ? { ...p, value } : p)),
-    );
+    onChange(params.map((p, i) => (i === index ? { ...p, value } : p)));
   };
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
-        <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Query Params</span>
+        <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+          Query Params
+        </span>
         <span className="text-gray-400 dark:text-gray-600 text-xs">
           {params.filter((p) => p.enabled).length} active
         </span>
@@ -66,7 +67,7 @@ export default function QueryParamsEditor({ params, onChange }: QueryParamsEdito
               value={newKey}
               onChange={(e) => setNewKey(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   handleAddParam();
                 }
               }}
@@ -78,7 +79,7 @@ export default function QueryParamsEditor({ params, onChange }: QueryParamsEdito
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   handleAddParam();
                 }
               }}
@@ -95,89 +96,99 @@ export default function QueryParamsEditor({ params, onChange }: QueryParamsEdito
           </div>
         </div>
 
-        {/* Empty state */}
-        {params.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-400 dark:text-gray-500 text-sm">No query parameters yet</p>
+        {/* Params table */}
+        {params.length === 0 ? (
+          <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+            <p className="text-sm">No query parameters yet</p>
           </div>
-        )}
-
-        {/* Params list */}
-        {params.length > 0 && (
-          <div className="space-y-2">
-            {params.map((param, index) => (
-              <div
-                key={index}
-                className={`flex items-center gap-2 p-2 rounded border ${
-                  param.enabled
-                    ? 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800'
-                    : 'border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-50'
-                }`}
-              >
-                <button
-                  onClick={() => handleToggleParam(index)}
-                  className={`w-5 h-5 flex items-center justify-center rounded border ${
-                    param.enabled
-                      ? 'border-primary-500 bg-primary-500'
-                      : 'border-gray-300 dark:border-gray-600'
+        ) : (
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                <th className="w-10 px-2 py-2 text-left font-medium"></th>
+                <th className="px-2 py-2 text-left font-medium">Key</th>
+                <th className="px-2 py-2 text-left font-medium">Value</th>
+                <th className="w-10 px-2 py-2 text-left font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {params.map((param, index) => (
+                <tr
+                  key={index}
+                  className={`border-b border-gray-100 dark:border-gray-800 ${
+                    param.enabled ? "" : "opacity-50"
                   }`}
-                  aria-label={param.enabled ? 'Disable' : 'Enable'}
                 >
-                  {param.enabled && (
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <td className="px-2 py-1.5">
+                    <button
+                      onClick={() => handleToggleParam(index)}
+                      className={`w-5 h-5 flex items-center justify-center rounded border ${
+                        param.enabled
+                          ? "border-primary-500 bg-primary-500"
+                          : "border-gray-300 dark:border-gray-600"
+                      }`}
+                      aria-label={param.enabled ? "Disable" : "Enable"}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
-                </button>
-
-                <input
-                  type="text"
-                  value={param.key}
-                  onChange={(e) => handleUpdateKey(index, e.target.value)}
-                  placeholder="Key"
-                  className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                />
-
-                <input
-                  type="text"
-                  value={param.value}
-                  onChange={(e) => handleUpdateValue(index, e.target.value)}
-                  placeholder="Value"
-                  className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                />
-
-                <button
-                  onClick={() => handleRemoveParam(index)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
-                  aria-label="Remove parameter"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
+                      {param.enabled && (
+                        <svg
+                          className="w-3 h-3 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input
+                      type="text"
+                      value={param.key}
+                      onChange={(e) => handleUpdateKey(index, e.target.value)}
+                      placeholder="Key"
+                      className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
                     />
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input
+                      type="text"
+                      value={param.value}
+                      onChange={(e) => handleUpdateValue(index, e.target.value)}
+                      placeholder="Value"
+                      className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                    />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <button
+                      onClick={() => handleRemoveParam(index)}
+                      className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
+                      aria-label="Remove parameter"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

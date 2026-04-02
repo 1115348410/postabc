@@ -358,151 +358,158 @@ export default function BodyEditor({
 
         <div className="flex-1 overflow-auto p-4">
           {formDataFields.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400 dark:text-gray-500 text-sm">
-                No form data yet
-              </p>
+            <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+              <p className="text-sm">No form data yet</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {formDataFields.map((field, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center gap-2 p-2 rounded border ${
-                    field.enabled
-                      ? "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      : "border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-50"
-                  }`}
-                >
-                  <button
-                    onClick={() => handleToggleField(index)}
-                    className={`w-5 h-5 flex items-center justify-center rounded border ${
-                      field.enabled
-                        ? "border-primary-500 bg-primary-500"
-                        : "border-gray-300 dark:border-gray-600"
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                  <th className="w-10 px-2 py-2 text-left font-medium"></th>
+                  <th className="w-24 px-2 py-2 text-left font-medium">Type</th>
+                  <th className="px-2 py-2 text-left font-medium">Key</th>
+                  <th className="px-2 py-2 text-left font-medium">Value</th>
+                  <th className="w-10 px-2 py-2 text-left font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {formDataFields.map((field, index) => (
+                  <tr
+                    key={index}
+                    className={`border-b border-gray-100 dark:border-gray-800 ${
+                      field.enabled ? "" : "opacity-50"
                     }`}
-                    aria-label={field.enabled ? "Disable" : "Enable"}
                   >
-                    {field.enabled && (
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    )}
-                  </button>
-
-                  <select
-                    value={field.type}
-                    onChange={(e) => {
-                      const newType = e.target.value as "text" | "file";
-                      onChangeFormDataFields?.(
-                        formDataFields.map((f, i) =>
-                          i === index
-                            ? {
-                                ...f,
-                                type: newType,
-                                value: newType === "text" ? f.value : "",
-                                fileData:
-                                  newType === "text" ? undefined : f.fileData,
-                              }
-                            : f,
-                        ),
-                      );
-                    }}
-                    className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                  >
-                    <option value="text">Text</option>
-                    <option value="file">File</option>
-                  </select>
-
-                  <input
-                    type="text"
-                    value={field.key}
-                    onChange={(e) => handleUpdateKey(index, e.target.value)}
-                    placeholder="Key"
-                    className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                  />
-
-                  {field.type === "text" ? (
-                    <input
-                      type="text"
-                      value={field.value}
-                      onChange={(e) => handleUpdateValue(index, e.target.value)}
-                      placeholder="Value"
-                      className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                    />
-                  ) : (
-                    <div className="flex-1 flex items-center gap-2">
-                      {field.fileData ? (
-                        <span className="flex-1 text-gray-600 dark:text-gray-400 text-sm truncate">
-                          {field.fileData.name}
-                        </span>
-                      ) : (
-                        <span className="flex-1 text-gray-400 dark:text-gray-500 text-sm italic">
-                          No file selected
-                        </span>
-                      )}
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            handleFileSelect(index, file);
-                          }
-                        }}
-                      />
+                    <td className="px-2 py-1.5">
                       <button
-                        onClick={() => {
-                          const input = document.createElement("input");
-                          input.type = "file";
-                          input.onchange = (e) => {
-                            const file = (e.target as HTMLInputElement)
-                              .files?.[0];
-                            if (file) {
-                              handleFileSelect(index, file);
-                            }
-                          };
-                          input.click();
-                        }}
-                        className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                        onClick={() => handleToggleField(index)}
+                        className={`w-5 h-5 flex items-center justify-center rounded border ${
+                          field.enabled
+                            ? "border-primary-500 bg-primary-500"
+                            : "border-gray-300 dark:border-gray-600"
+                        }`}
+                        aria-label={field.enabled ? "Disable" : "Enable"}
                       >
-                        Choose
+                        {field.enabled && (
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
                       </button>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => handleRemoveField(index)}
-                    className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
-                    aria-label="Remove field"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <select
+                        value={field.type}
+                        onChange={(e) => {
+                          const newType = e.target.value as "text" | "file";
+                          onChangeFormDataFields?.(
+                            formDataFields.map((f, i) =>
+                              i === index
+                                ? {
+                                    ...f,
+                                    type: newType,
+                                    value: newType === "text" ? f.value : "",
+                                    fileData:
+                                      newType === "text"
+                                        ? undefined
+                                        : f.fileData,
+                                  }
+                                : f,
+                            ),
+                          );
+                        }}
+                        className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                      >
+                        <option value="text">Text</option>
+                        <option value="file">File</option>
+                      </select>
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <input
+                        type="text"
+                        value={field.key}
+                        onChange={(e) => handleUpdateKey(index, e.target.value)}
+                        placeholder="Key"
+                        className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
                       />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
+                    </td>
+                    <td className="px-2 py-1.5">
+                      {field.type === "text" ? (
+                        <input
+                          type="text"
+                          value={field.value}
+                          onChange={(e) =>
+                            handleUpdateValue(index, e.target.value)
+                          }
+                          placeholder="Value"
+                          className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          {field.fileData ? (
+                            <span className="flex-1 text-gray-600 dark:text-gray-400 text-sm truncate">
+                              {field.fileData.name}
+                            </span>
+                          ) : (
+                            <span className="flex-1 text-gray-400 dark:text-gray-500 text-sm italic">
+                              No file selected
+                            </span>
+                          )}
+                          <button
+                            onClick={() => {
+                              const input = document.createElement("input");
+                              input.type = "file";
+                              input.onchange = (e) => {
+                                const file = (e.target as HTMLInputElement)
+                                  .files?.[0];
+                                if (file) {
+                                  handleFileSelect(index, file);
+                                }
+                              };
+                              input.click();
+                            }}
+                            className="bg-primary-600 hover:bg-primary-700 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
+                          >
+                            Choose
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <button
+                        onClick={() => handleRemoveField(index)}
+                        className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
+                        aria-label="Remove field"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
 
           {/* Add new field */}
@@ -657,86 +664,99 @@ export default function BodyEditor({
 
         <div className="flex-1 overflow-auto p-4">
           {urlencodedFields.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400 dark:text-gray-500 text-sm">
-                No URL encoded data yet
-              </p>
+            <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+              <p className="text-sm">No URL encoded data yet</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {urlencodedFields.map((field, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center gap-2 p-2 rounded border ${
-                    field.enabled
-                      ? "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      : "border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-50"
-                  }`}
-                >
-                  <button
-                    onClick={() => handleToggleField(index)}
-                    className={`w-5 h-5 flex items-center justify-center rounded border ${
-                      field.enabled
-                        ? "border-primary-500 bg-primary-500"
-                        : "border-gray-300 dark:border-gray-600"
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                  <th className="w-10 px-2 py-2 text-left font-medium"></th>
+                  <th className="px-2 py-2 text-left font-medium">Key</th>
+                  <th className="px-2 py-2 text-left font-medium">Value</th>
+                  <th className="w-10 px-2 py-2 text-left font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {urlencodedFields.map((field, index) => (
+                  <tr
+                    key={index}
+                    className={`border-b border-gray-100 dark:border-gray-800 ${
+                      field.enabled ? "" : "opacity-50"
                     }`}
-                    aria-label={field.enabled ? "Disable" : "Enable"}
                   >
-                    {field.enabled && (
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    <td className="px-2 py-1.5">
+                      <button
+                        onClick={() => handleToggleField(index)}
+                        className={`w-5 h-5 flex items-center justify-center rounded border ${
+                          field.enabled
+                            ? "border-primary-500 bg-primary-500"
+                            : "border-gray-300 dark:border-gray-600"
+                        }`}
+                        aria-label={field.enabled ? "Disable" : "Enable"}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    )}
-                  </button>
-
-                  <input
-                    type="text"
-                    value={field.key}
-                    onChange={(e) => handleUpdateKey(index, e.target.value)}
-                    placeholder="Key"
-                    className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                  />
-
-                  <input
-                    type="text"
-                    value={field.value}
-                    onChange={(e) => handleUpdateValue(index, e.target.value)}
-                    placeholder="Value"
-                    className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                  />
-
-                  <button
-                    onClick={() => handleRemoveField(index)}
-                    className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
-                    aria-label="Remove field"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
+                        {field.enabled && (
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <input
+                        type="text"
+                        value={field.key}
+                        onChange={(e) => handleUpdateKey(index, e.target.value)}
+                        placeholder="Key"
+                        className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
                       />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <input
+                        type="text"
+                        value={field.value}
+                        onChange={(e) =>
+                          handleUpdateValue(index, e.target.value)
+                        }
+                        placeholder="Value"
+                        className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                      />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <button
+                        onClick={() => handleRemoveField(index)}
+                        className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
+                        aria-label="Remove field"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
 
           {/* Add new field */}
