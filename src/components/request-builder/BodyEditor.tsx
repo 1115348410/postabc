@@ -105,6 +105,16 @@ export default function BodyEditor({
         ]);
       };
       reader.readAsArrayBuffer(formDataSelectedFile);
+    } else if (formDataNewFieldType === "file" && !formDataSelectedFile) {
+      onChangeFormDataFields?.([
+        ...formDataFields,
+        {
+          key: formDataNewKey.trim(),
+          value: "",
+          type: "file",
+          enabled: true,
+        },
+      ]);
     } else {
       onChangeFormDataFields?.([
         ...formDataFields,
