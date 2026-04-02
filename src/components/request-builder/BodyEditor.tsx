@@ -158,8 +158,8 @@ export default function BodyEditor({
           ? {
               ...f,
               type: newType,
-              value: newType === "text" ? f.value : "",
-              fileData: newType === "text" ? undefined : f.fileData,
+              value: "",
+              fileData: newType === "text" ? undefined : undefined,
             }
           : f,
       ),
