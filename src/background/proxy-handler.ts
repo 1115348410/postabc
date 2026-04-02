@@ -1,6 +1,6 @@
-import type { RequestConfig } from '../types/request';
-import type { ResponseData } from '../types/response';
-import { replaceVariables } from '../utils/variable';
+import type { RequestConfig } from "../types/request";
+import type { ResponseData } from "../types/response";
+import { replaceVariables } from "../utils/variable";
 
 /**
  * Proxy Handler for bypassing CORS
@@ -24,7 +24,7 @@ export class ProxyHandler {
    */
   async enableCorsBypass(patterns: string[]): Promise<void> {
     if (!chrome.declarativeNetRequest) {
-      console.warn('declarativeNetRequest API not available');
+      console.warn("declarativeNetRequest API not available");
       return;
     }
 
@@ -38,24 +38,25 @@ export class ProxyHandler {
         type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
         responseHeaders: [
           {
-            header: 'Access-Control-Allow-Origin',
+            header: "Access-Control-Allow-Origin",
             operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-            value: 'http://localhost,http://127.0.0.1,http://0.0.0.0',
+            value: "http://localhost,http://127.0.0.1,http://0.0.0.0",
           },
           {
-            header: 'Access-Control-Allow-Methods',
+            header: "Access-Control-Allow-Methods",
             operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-            value: 'GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS',
+            value: "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS",
           },
           {
-            header: 'Access-Control-Allow-Headers',
+            header: "Access-Control-Allow-Headers",
             operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-            value: 'Content-Type,Authorization,X-Requested-With,Accept,Origin,X-Api-Key,X-Client-Version',
+            value:
+              "Content-Type,Authorization,X-Requested-With,Accept,Origin,X-Api-Key,X-Client-Version",
           },
           {
-            header: 'Access-Control-Allow-Credentials',
+            header: "Access-Control-Allow-Credentials",
             operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-            value: 'true',
+            value: "true",
           },
         ],
       },
@@ -74,7 +75,7 @@ export class ProxyHandler {
       });
       this.activeRules = rules.map((r) => r.id);
     } catch (error) {
-      console.error('Failed to enable CORS bypass:', error);
+      console.error("Failed to enable CORS bypass:", error);
     }
   }
 
@@ -93,7 +94,7 @@ export class ProxyHandler {
         });
         this.activeRules = [];
       } catch (error) {
-        console.error('Failed to disable CORS bypass:', error);
+        console.error("Failed to disable CORS bypass:", error);
       }
     }
   }
@@ -103,7 +104,7 @@ export class ProxyHandler {
    */
   async executeProxyRequest(
     request: RequestConfig,
-    environment: Record<string, any>
+    environment: Record<string, any>,
   ): Promise<ResponseData> {
     const startTime = performance.now();
     let timeoutId: NodeJS.Timeout | undefined;
@@ -131,29 +132,26 @@ export class ProxyHandler {
       const headers = new Headers();
       request.headers.forEach((h) => {
         if (h.enabled && h.key) {
-          headers.append(
-            h.key,
-            this.replaceVariables(h.value, environment)
-          );
+          headers.append(h.key, this.replaceVariables(h.value, environment));
         }
       });
 
       // Construct body
       let body: string | FormData | undefined = undefined;
-      if (request.method !== 'GET' && request.method !== 'HEAD') {
+      if (request.method !== "GET" && request.method !== "HEAD") {
         body = this.constructBody(request, environment);
       }
 
       // 如果是 FormData，删除 Content-Type 头，让浏览器自动设置（包含 boundary）
       if (body instanceof FormData) {
-        headers.delete('Content-Type');
+        headers.delete("Content-Type");
       }
 
       // Create abort controller for timeout
       const controller = new AbortController();
       timeoutId = setTimeout(
         () => controller.abort(),
-        request.timeout || 30000
+        request.timeout || 30000,
       );
 
       // Execute request
@@ -162,7 +160,7 @@ export class ProxyHandler {
         headers,
         body,
         signal: controller.signal,
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (timeoutId) {
@@ -188,14 +186,18 @@ export class ProxyHandler {
           method: request.method,
           url: url,
           headers: Object.fromEntries(headers.entries()),
-          body: body ? (typeof body === 'string' ? body : undefined) : undefined,
+          body: body
+            ? typeof body === "string"
+              ? body
+              : undefined
+            : undefined,
         },
       };
     } catch (error) {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         throw new Error(`Request timeout after ${request.timeout || 30000}ms`);
       }
       throw error;
@@ -208,18 +210,21 @@ export class ProxyHandler {
   async executeProxyRequestWithAbort(
     request: RequestConfig,
     environment: Record<string, any>,
-    signal: AbortSignal
+    signal: AbortSignal,
   ): Promise<ResponseData> {
     const startTime = performance.now();
 
-    console.log('[ProxyHandler] executeProxyRequestWithAbort 收到的环境变量:', JSON.stringify(environment));
+    console.log(
+      "[ProxyHandler] executeProxyRequestWithAbort 收到的环境变量:",
+      JSON.stringify(environment),
+    );
 
     // 监听取消信号
     let isAborted = false;
     const abortHandler = () => {
       isAborted = true;
     };
-    signal.addEventListener('abort', abortHandler);
+    signal.addEventListener("abort", abortHandler);
 
     try {
       // Construct URL with query parameters
@@ -245,7 +250,7 @@ export class ProxyHandler {
 
       // Construct body
       let body: string | FormData | undefined = undefined;
-      if (request.method !== 'GET' && request.method !== 'HEAD') {
+      if (request.method !== "GET" && request.method !== "HEAD") {
         body = this.constructBody(request, environment);
       }
 
@@ -253,32 +258,41 @@ export class ProxyHandler {
       const timeoutController = new AbortController();
       const timeoutId = setTimeout(
         () => timeoutController.abort(),
-        request.timeout || 30000
+        request.timeout || 30000,
       );
 
       // Link timeout controller abort to main signal
       const timeoutAbortHandler = () => {
         if (!isAborted) {
-          signal.removeEventListener('abort', abortHandler);
+          signal.removeEventListener("abort", abortHandler);
         }
         clearTimeout(timeoutId);
       };
-      timeoutController.signal.addEventListener('abort', timeoutAbortHandler);
+      timeoutController.signal.addEventListener("abort", timeoutAbortHandler);
 
-      console.log('[PostABC Background] 发送请求:', { url, method: request.method, headers: Object.fromEntries(headers.entries()) });
+      console.log("[PostABC Background] 发送请求:", {
+        url,
+        method: request.method,
+        headers: Object.fromEntries(headers.entries()),
+      });
 
       // Execute request
       const response = await fetch(url, {
         method: request.method,
         headers,
         body,
-        signal: AbortSignal.any ? AbortSignal.any([signal, timeoutController.signal]) : signal, // 使用现代浏览器支持的AbortSignal.any，否则回退到主信号
-        credentials: 'include',
+        signal: AbortSignal.any
+          ? AbortSignal.any([signal, timeoutController.signal])
+          : signal, // 使用现代浏览器支持的AbortSignal.any，否则回退到主信号
+        credentials: "include",
       });
 
       clearTimeout(timeoutId);
-      signal.removeEventListener('abort', abortHandler);
-      timeoutController.signal.removeEventListener('abort', timeoutAbortHandler);
+      signal.removeEventListener("abort", abortHandler);
+      timeoutController.signal.removeEventListener(
+        "abort",
+        timeoutAbortHandler,
+      );
 
       // Parse response
       const responseBody = await this.parseResponseBody(response);
@@ -299,14 +313,18 @@ export class ProxyHandler {
           method: request.method,
           url: url,
           headers: Object.fromEntries(headers.entries()),
-          body: body ? (typeof body === 'string' ? body : undefined) : undefined,
+          body: body
+            ? typeof body === "string"
+              ? body
+              : undefined
+            : undefined,
         },
       };
     } catch (error) {
-      signal.removeEventListener('abort', abortHandler);
-      if (error instanceof Error && error.name === 'AbortError') {
+      signal.removeEventListener("abort", abortHandler);
+      if (error instanceof Error && error.name === "AbortError") {
         if (isAborted) {
-          throw new Error('请求已取消');
+          throw new Error("请求已取消");
         }
         throw new Error(`Request timeout after ${request.timeout || 30000}ms`);
       }
@@ -318,19 +336,20 @@ export class ProxyHandler {
    * Build headers with default values
    */
   private buildHeaders(
-    requestHeaders: RequestConfig['headers'],
-    environment: Record<string, any>
+    requestHeaders: RequestConfig["headers"],
+    environment: Record<string, any>,
   ): Headers {
     const headers = new Headers();
 
-    console.log('[ProxyHandler] 构建请求头，环境变量:', environment);
+    console.log("[ProxyHandler] 构建请求头，环境变量:", environment);
 
     // 设置默认请求头（仅在用户未指定时才设置）
     const defaultHeaders: Record<string, string> = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': '*/*',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Connection': 'keep-alive',
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      Accept: "*/*",
+      "Accept-Encoding": "gzip, deflate, br",
+      Connection: "keep-alive",
     };
 
     // 先处理用户自定义头（并进行变量替换）
@@ -339,7 +358,9 @@ export class ProxyHandler {
       if (h.enabled && h.key) {
         const originalValue = h.value;
         const replacedValue = this.replaceVariables(h.value, environment);
-        console.log(`[ProxyHandler] Header ${h.key}: "${originalValue}" -> "${replacedValue}"`);
+        console.log(
+          `[ProxyHandler] Header ${h.key}: "${originalValue}" -> "${replacedValue}"`,
+        );
         userHeaders.set(h.key.toLowerCase(), replacedValue); // 使用小写键名进行比较
       }
     });
@@ -355,7 +376,8 @@ export class ProxyHandler {
     // 设置用户自定义头（覆盖默认头）
     for (const [key, value] of userHeaders) {
       // 使用原始大小写的键名，但需要找到原始的键名
-      const originalKey = requestHeaders?.find(h => h.key?.toLowerCase() === key)?.key || key;
+      const originalKey =
+        requestHeaders?.find((h) => h.key?.toLowerCase() === key)?.key || key;
       headers.set(originalKey, value);
     }
 
@@ -369,30 +391,33 @@ export class ProxyHandler {
     request: RequestConfig,
     environment: Record<string, any>,
     signal: AbortSignal,
-    onStreamData: (data: any) => void
+    onStreamData: (data: any) => void,
   ): Promise<ResponseData> {
     const startTime = performance.now();
 
     // 调试：打印收到的环境变量
-    console.log('[ProxyHandler] executeProxyRequestWithStream 收到的环境变量:', JSON.stringify(environment));
-    console.log('[ProxyHandler] 原始 URL:', request.url);
+    console.log(
+      "[ProxyHandler] executeProxyRequestWithStream 收到的环境变量:",
+      JSON.stringify(environment),
+    );
+    console.log("[ProxyHandler] 原始 URL:", request.url);
 
     // 监听取消信号
     let isAborted = false;
     const abortHandler = () => {
       isAborted = true;
     };
-    signal.addEventListener('abort', abortHandler);
+    signal.addEventListener("abort", abortHandler);
 
     // 创建超时控制器
     const timeoutController = new AbortController();
     const timeoutId = setTimeout(
       () => timeoutController.abort(),
-      request.timeout || 30000
+      request.timeout || 30000,
     );
 
     // 链接超时和主信号
-    const combinedSignal = AbortSignal.any 
+    const combinedSignal = AbortSignal.any
       ? AbortSignal.any([signal, timeoutController.signal])
       : signal;
 
@@ -407,7 +432,9 @@ export class ProxyHandler {
             if (p.key) {
               const originalValue = p.value;
               const replacedValue = this.replaceVariables(p.value, environment);
-              console.log(`[ProxyHandler] QueryParam ${p.key}: "${originalValue}" -> "${replacedValue}"`);
+              console.log(
+                `[ProxyHandler] QueryParam ${p.key}: "${originalValue}" -> "${replacedValue}"`,
+              );
               params.append(p.key, replacedValue);
             }
           });
@@ -425,16 +452,20 @@ export class ProxyHandler {
 
       // Construct body
       let body: string | FormData | undefined = undefined;
-      if (request.method !== 'GET' && request.method !== 'HEAD') {
+      if (request.method !== "GET" && request.method !== "HEAD") {
         body = this.constructBody(request, environment);
       }
 
       // 如果是 FormData，删除 Content-Type 头，让浏览器自动设置（包含 boundary）
       if (body instanceof FormData) {
-        headers.delete('Content-Type');
+        headers.delete("Content-Type");
       }
 
-      console.log('[PostABC Background] 发送流式请求:', { url, method: request.method, headers: Object.fromEntries(headers.entries()) });
+      console.log("[PostABC Background] 发送流式请求:", {
+        url,
+        method: request.method,
+        headers: Object.fromEntries(headers.entries()),
+      });
 
       // Execute request with combined signal
       const response = await fetch(url, {
@@ -442,11 +473,15 @@ export class ProxyHandler {
         headers,
         body,
         signal: combinedSignal,
-        credentials: 'include',
+        credentials: "include",
       });
 
       // Parse response with streaming
-      const responseBody = await this.parseResponseBodyWithStream(response, onStreamData, signal);
+      const responseBody = await this.parseResponseBodyWithStream(
+        response,
+        onStreamData,
+        signal,
+      );
 
       const endTime = performance.now();
 
@@ -464,14 +499,18 @@ export class ProxyHandler {
           method: request.method,
           url: url,
           headers: Object.fromEntries(headers.entries()),
-          body: body ? (typeof body === 'string' ? body : undefined) : undefined,
+          body: body
+            ? typeof body === "string"
+              ? body
+              : undefined
+            : undefined,
         },
       };
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         if (isAborted) {
-          throw new Error('请求已取消');
+          throw new Error("请求已取消");
         } else if (timeoutController.signal.aborted) {
           throw new Error(`请求超时 (${request.timeout || 30000}ms)`);
         }
@@ -479,7 +518,7 @@ export class ProxyHandler {
       throw error;
     } finally {
       clearTimeout(timeoutId);
-      signal.removeEventListener('abort', abortHandler);
+      signal.removeEventListener("abort", abortHandler);
     }
   }
 
@@ -488,49 +527,58 @@ export class ProxyHandler {
    */
   private constructBody(
     request: RequestConfig,
-    environment: Record<string, any>
+    environment: Record<string, any>,
   ): string | FormData {
     switch (request.bodyType) {
-      case 'json':
+      case "json":
         // JSON body 需要进行变量替换
-        const jsonBody = request.body?.json || '{}';
+        const jsonBody = request.body?.json || "{}";
         const replacedJsonBody = this.replaceVariables(jsonBody, environment);
-        console.log('[ProxyHandler] JSON Body 变量替换:', { original: jsonBody, replaced: replacedJsonBody });
+        console.log("[ProxyHandler] JSON Body 变量替换:", {
+          original: jsonBody,
+          replaced: replacedJsonBody,
+        });
         return replacedJsonBody;
-      case 'raw':
+      case "raw":
         // Raw body 也需要进行变量替换
-        const rawBody = request.body?.raw || '';
+        const rawBody = request.body?.raw || "";
         const replacedRawBody = this.replaceVariables(rawBody, environment);
-        console.log('[ProxyHandler] Raw Body 变量替换:', { original: rawBody, replaced: replacedRawBody });
+        console.log("[ProxyHandler] Raw Body 变量替换:", {
+          original: rawBody,
+          replaced: replacedRawBody,
+        });
         return replacedRawBody;
-      case 'urlencoded':
+      case "urlencoded":
         if (request.body?.urlencoded) {
           const params = new URLSearchParams();
           request.body.urlencoded
             .filter((p) => p.enabled && p.key)
             .forEach((p) => {
-              params.append(
-                p.key,
-                this.replaceVariables(p.value, environment)
-              );
+              params.append(p.key, this.replaceVariables(p.value, environment));
             });
           return params.toString();
         }
-        return '';
-      case 'form-data':
+        return "";
+      case "form-data":
         const formData = new FormData();
         if (request.body?.form) {
           request.body.form
             .filter((f) => f.enabled && f.key)
             .forEach((f) => {
-              // 检查是否为文件字段
-              if (f.type === 'file' && f.value && typeof f.value === 'string' && f.value.startsWith('file://')) {
-                // 对于文件字段，我们不能直接替换变量，因为文件路径不应该被替换
-                // 这里只是示例，实际的文件上传需要特殊处理
-                formData.append(f.key, f.value);
+              if (f.type === "file" && f.fileData) {
+                const { name, type, data } = f.fileData;
+                const blob = new Blob([data], {
+                  type: type || "application/octet-stream",
+                });
+                const file = new File([blob], name, {
+                  type: type || "application/octet-stream",
+                });
+                formData.append(f.key, file);
               } else {
-                // 对于文本字段，进行变量替换
-                const processedValue = this.replaceVariables(f.value, environment);
+                const processedValue = this.replaceVariables(
+                  f.value,
+                  environment,
+                );
                 formData.append(f.key, processedValue);
               }
             });
@@ -544,38 +592,38 @@ export class ProxyHandler {
   /**
    * Parse response body
    */
-  private async parseResponseBody(response: Response): Promise<
-    ResponseData['body']
-  > {
-    const contentType = response.headers.get('content-type') || '';
+  private async parseResponseBody(
+    response: Response,
+  ): Promise<ResponseData["body"]> {
+    const contentType = response.headers.get("content-type") || "";
 
     // Check for SSE
-    if (contentType.includes('text/event-stream')) {
-      const { SSEStreamHandler } = await import('../core/sse/stream-handler');
+    if (contentType.includes("text/event-stream")) {
+      const { SSEStreamHandler } = await import("../core/sse/stream-handler");
       const handler = new SSEStreamHandler({
         onComplete: () => {},
         onProgress: () => {},
       });
       const events = await handler.handleStream(response);
       return {
-        type: 'sse',
+        type: "sse",
         content: events,
-        raw: events.map((e) => e.data).join('\n'),
+        raw: events.map((e) => e.data).join("\n"),
       };
     }
 
     // Check for JSON
-    if (contentType.includes('application/json')) {
+    if (contentType.includes("application/json")) {
       try {
         const text = await response.text();
         return {
-          type: 'json',
+          type: "json",
           content: JSON.parse(text),
         };
       } catch {
         const text = await response.text();
         return {
-          type: 'json',
+          type: "json",
           content: text,
         };
       }
@@ -584,7 +632,7 @@ export class ProxyHandler {
     // Default to text
     const text = await response.text();
     return {
-      type: 'text',
+      type: "text",
       content: text,
     };
   }
@@ -595,37 +643,57 @@ export class ProxyHandler {
   private async parseResponseBodyWithStream(
     response: Response,
     onStreamData: (data: any) => void,
-    signal?: AbortSignal
-  ): Promise<ResponseData['body']> {
-    const contentType = response.headers.get('content-type') || '';
+    signal?: AbortSignal,
+  ): Promise<ResponseData["body"]> {
+    const contentType = response.headers.get("content-type") || "";
 
-    console.log('[ProxyHandler] parseResponseBodyWithStream contentType:', contentType);
-    console.log('[ProxyHandler] onStreamData callback type:', typeof onStreamData);
+    console.log(
+      "[ProxyHandler] parseResponseBodyWithStream contentType:",
+      contentType,
+    );
+    console.log(
+      "[ProxyHandler] onStreamData callback type:",
+      typeof onStreamData,
+    );
 
     // Check for SSE
-    if (contentType.includes('text/event-stream')) {
-      const { SSEStreamHandler } = await import('../core/sse/stream-handler');
+    if (contentType.includes("text/event-stream")) {
+      const { SSEStreamHandler } = await import("../core/sse/stream-handler");
       const events: any[] = [];
 
-      console.log('[ProxyHandler] Creating SSEStreamHandler for SSE stream');
+      console.log("[ProxyHandler] Creating SSEStreamHandler for SSE stream");
 
       const handler = new SSEStreamHandler({
         onData: (event) => {
           // 立即打印日志确认回调被调用
-          console.log('[ProxyHandler] onData callback invoked, event id:', event.id, 'signal.aborted:', signal?.aborted);
-          
+          console.log(
+            "[ProxyHandler] onData callback invoked, event id:",
+            event.id,
+            "signal.aborted:",
+            signal?.aborted,
+          );
+
           // 检查是否已取消
           if (signal?.aborted) {
-            console.log('[ProxyHandler] Signal aborted, skipping event');
+            console.log("[ProxyHandler] Signal aborted, skipping event");
             return;
           }
           events.push(event);
-          console.log('[ProxyHandler] Calling onStreamData for event:', event.id);
-          onStreamData({ type: 'sse-event', event });
-          console.log('[ProxyHandler] onStreamData call completed for event:', event.id);
+          console.log(
+            "[ProxyHandler] Calling onStreamData for event:",
+            event.id,
+          );
+          onStreamData({ type: "sse-event", event });
+          console.log(
+            "[ProxyHandler] onStreamData call completed for event:",
+            event.id,
+          );
         },
         onComplete: () => {
-          console.log('[ProxyHandler] SSE stream complete, total events:', events.length);
+          console.log(
+            "[ProxyHandler] SSE stream complete, total events:",
+            events.length,
+          );
         },
         onProgress: () => {},
       });
@@ -634,32 +702,32 @@ export class ProxyHandler {
         await handler.handleStream(response, signal);
       } catch (error) {
         // 如果是取消错误，返回已收集的事件
-        if (error instanceof Error && error.name === 'AbortError') {
-          console.log('[ProxyHandler] Stream parsing aborted');
+        if (error instanceof Error && error.name === "AbortError") {
+          console.log("[ProxyHandler] Stream parsing aborted");
         } else {
           throw error;
         }
       }
 
       return {
-        type: 'sse',
+        type: "sse",
         content: events,
-        raw: events.map((e) => e.data).join('\n'),
+        raw: events.map((e) => e.data).join("\n"),
       };
     }
 
     // Check for JSON
-    if (contentType.includes('application/json')) {
+    if (contentType.includes("application/json")) {
       try {
         const text = await response.text();
         return {
-          type: 'json',
+          type: "json",
           content: JSON.parse(text),
         };
       } catch {
         const text = await response.text();
         return {
-          type: 'json',
+          type: "json",
           content: text,
         };
       }
@@ -668,7 +736,7 @@ export class ProxyHandler {
     // Default to text
     const text = await response.text();
     return {
-      type: 'text',
+      type: "text",
       content: text,
     };
   }
@@ -676,8 +744,8 @@ export class ProxyHandler {
   /**
    * Calculate response size
    */
-  private calculateSize(body: ResponseData['body']): number {
-    if (typeof body.content === 'string') {
+  private calculateSize(body: ResponseData["body"]): number {
+    if (typeof body.content === "string") {
       return new Blob([body.content]).size;
     } else if (Array.isArray(body.content)) {
       return JSON.stringify(body.content).length;
@@ -691,7 +759,7 @@ export class ProxyHandler {
    */
   private replaceVariables(
     str: string,
-    environment: Record<string, any>
+    environment: Record<string, any>,
   ): string {
     return replaceVariables(str, environment);
   }

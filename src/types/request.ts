@@ -2,19 +2,19 @@
  * HTTP Methods supported by the API client
  */
 export type HttpMethod =
-  | 'GET'
-  | 'POST'
-  | 'PUT'
-  | 'DELETE'
-  | 'PATCH'
-  | 'HEAD'
-  | 'OPTIONS'
-  | 'TRACE';
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "PATCH"
+  | "HEAD"
+  | "OPTIONS"
+  | "TRACE";
 
 /**
  * Supported body content types
  */
-export type BodyType = 'none' | 'json' | 'form-data' | 'raw' | 'urlencoded';
+export type BodyType = "none" | "json" | "form-data" | "raw" | "urlencoded";
 
 /**
  * Request header
@@ -40,8 +40,13 @@ export interface QueryParam {
 export interface FormDataField {
   key: string;
   value: string;
-  type: 'text' | 'file';
+  type: "text" | "file";
   enabled: boolean;
+  fileData?: {
+    name: string;
+    type: string;
+    data: ArrayBuffer;
+  };
 }
 
 /**
@@ -65,7 +70,7 @@ export interface StreamConfig {
   /** Field extraction rules */
   extractionRules: StreamExtractionRule[];
   /** Display mode for extracted content */
-  displayMode: 'concatenated' | 'raw' | 'both';
+  displayMode: "concatenated" | "raw" | "both";
 }
 
 /**
@@ -120,8 +125,8 @@ export interface RequestTab {
   isDirty?: boolean;
   isActive?: boolean;
   // API 保存相关
-  apiUuid?: string;      // 已保存接口的UUID（编辑模式）
-  parentUuid?: string;   // 所属文件夹UUID
+  apiUuid?: string; // 已保存接口的UUID（编辑模式）
+  parentUuid?: string; // 所属文件夹UUID
 }
 
 /**
@@ -143,19 +148,19 @@ export interface HttpRequest {
 /**
  * Default request configuration for new tabs
  */
-export const DEFAULT_REQUEST_CONFIG: Omit<RequestConfig, 'id'> = {
-  method: 'GET',
-  url: '',
+export const DEFAULT_REQUEST_CONFIG: Omit<RequestConfig, "id"> = {
+  method: "GET",
+  url: "",
   headers: [
-    { key: 'Content-Type', value: 'application/json', enabled: true },
-    { key: 'Accept', value: '*/*', enabled: true },
+    { key: "Content-Type", value: "application/json", enabled: true },
+    { key: "Accept", value: "*/*", enabled: true },
   ],
   queryParams: [],
-  bodyType: 'none',
+  bodyType: "none",
   timeout: 30000,
   streamConfig: {
     enabled: false,
     extractionRules: [],
-    displayMode: 'concatenated',
+    displayMode: "concatenated",
   },
 };

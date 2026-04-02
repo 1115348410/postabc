@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import type { BodyType, FormDataField, QueryParam } from '../../types';
+import React, { useState, useMemo } from "react";
+import type { BodyType, FormDataField, QueryParam } from "../../types";
 
 interface JsonValidationResult {
   isValid: boolean;
@@ -22,7 +22,7 @@ function validateJson(json: string): JsonValidationResult {
       const match = e.message.match(/position\s+(\d+)/);
       if (match) {
         const position = parseInt(match[1], 10);
-        const lines = json.substring(0, position).split('\n');
+        const lines = json.substring(0, position).split("\n");
         const line = lines.length;
         const column = lines[lines.length - 1].length + 1;
         return {
@@ -54,9 +54,9 @@ interface BodyEditorProps {
 export default function BodyEditor({
   bodyType,
   onChangeBodyType,
-  jsonBody = '',
+  jsonBody = "",
   onChangeJsonBody,
-  rawBody = '',
+  rawBody = "",
   onChangeRawBody,
   formDataFields = [],
   onChangeFormDataFields,
@@ -64,22 +64,24 @@ export default function BodyEditor({
   onChangeUrlencodedFields,
 }: BodyEditorProps) {
   const bodyTypes: { value: BodyType; label: string }[] = [
-    { value: 'none', label: 'None' },
-    { value: 'json', label: 'JSON' },
-    { value: 'form-data', label: 'Form Data' },
-    { value: 'urlencoded', label: 'URL Encoded' },
-    { value: 'raw', label: 'Raw' },
+    { value: "none", label: "None" },
+    { value: "json", label: "JSON" },
+    { value: "form-data", label: "Form Data" },
+    { value: "urlencoded", label: "URL Encoded" },
+    { value: "raw", label: "Raw" },
   ];
 
   // JSON body editor
-  if (bodyType === 'json') {
+  if (bodyType === "json") {
     const jsonValidation = useMemo(() => validateJson(jsonBody), [jsonBody]);
 
     return (
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
         <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Body</span>
+            <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+              Body
+            </span>
             <select
               value={bodyType}
               onChange={(e) => onChangeBodyType(e.target.value as BodyType)}
@@ -98,15 +100,35 @@ export default function BodyEditor({
               <div className="flex items-center gap-1.5">
                 {jsonValidation.isValid ? (
                   <>
-                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-4 h-4 text-green-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     <span className="text-xs text-green-500">Valid JSON</span>
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-4 h-4 text-red-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                     <span className="text-xs text-red-500">Invalid JSON</span>
                   </>
@@ -140,40 +162,55 @@ export default function BodyEditor({
             placeholder='{\n  "key": "value"\n}'
             className={`w-full flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-base font-mono border rounded p-3 focus:outline-none resize-none ${
               jsonBody.trim() && !jsonValidation.isValid
-                ? 'border-red-400 dark:border-red-500 focus:border-red-500'
-                : 'border-gray-300 dark:border-gray-700 focus:border-primary-500'
+                ? "border-red-400 dark:border-red-500 focus:border-red-500"
+                : "border-gray-300 dark:border-gray-700 focus:border-primary-500"
             }`}
             spellCheck={false}
           />
           {/* 错误详情提示 */}
-          {jsonBody.trim() && !jsonValidation.isValid && jsonValidation.error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded px-3 py-2 flex items-start gap-2">
-              <svg className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div className="text-xs text-red-600 dark:text-red-400">
-                <span className="font-medium">JSON Error: </span>
-                {jsonValidation.errorLine && jsonValidation.errorColumn ? (
-                  <span>
-                    Line {jsonValidation.errorLine}, Column {jsonValidation.errorColumn}: {jsonValidation.error}
-                  </span>
-                ) : (
-                  <span>{jsonValidation.error}</span>
-                )}
+          {jsonBody.trim() &&
+            !jsonValidation.isValid &&
+            jsonValidation.error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded px-3 py-2 flex items-start gap-2">
+                <svg
+                  className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div className="text-xs text-red-600 dark:text-red-400">
+                  <span className="font-medium">JSON Error: </span>
+                  {jsonValidation.errorLine && jsonValidation.errorColumn ? (
+                    <span>
+                      Line {jsonValidation.errorLine}, Column{" "}
+                      {jsonValidation.errorColumn}: {jsonValidation.error}
+                    </span>
+                  ) : (
+                    <span>{jsonValidation.error}</span>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     );
   }
 
   // Raw body editor
-  if (bodyType === 'raw') {
+  if (bodyType === "raw") {
     return (
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
         <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
-          <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Body</span>
+          <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+            Body
+          </span>
           <select
             value={bodyType}
             onChange={(e) => onChangeBodyType(e.target.value as BodyType)}
@@ -201,21 +238,53 @@ export default function BodyEditor({
   }
 
   // Form Data editor
-  if (bodyType === 'form-data') {
-    const [newKey, setNewKey] = useState('');
-    const [newValue, setNewValue] = useState('');
+  if (bodyType === "form-data") {
+    const [newKey, setNewKey] = useState("");
+    const [newValue, setNewValue] = useState("");
+    const [newFieldType, setNewFieldType] = useState<"text" | "file">("text");
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const handleAddField = () => {
       if (!newKey.trim()) {
         return;
       }
 
-      onChangeFormDataFields?.([
-        ...formDataFields,
-        { key: newKey.trim(), value: newValue.trim(), type: 'text', enabled: true },
-      ]);
-      setNewKey('');
-      setNewValue('');
+      if (newFieldType === "file" && selectedFile) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const arrayBuffer = e.target?.result;
+          onChangeFormDataFields?.([
+            ...formDataFields,
+            {
+              key: newKey.trim(),
+              value: selectedFile.name,
+              type: "file",
+              enabled: true,
+              fileData: {
+                name: selectedFile.name,
+                type: selectedFile.type,
+                data: arrayBuffer as ArrayBuffer,
+              },
+            },
+          ]);
+        };
+        reader.readAsArrayBuffer(selectedFile);
+      } else {
+        onChangeFormDataFields?.([
+          ...formDataFields,
+          {
+            key: newKey.trim(),
+            value: newValue.trim(),
+            type: "text",
+            enabled: true,
+          },
+        ]);
+      }
+      setNewKey("");
+      setNewValue("");
+      setNewFieldType("text");
+      setSelectedFile(null);
     };
 
     const handleRemoveField = (index: number) => {
@@ -242,10 +311,35 @@ export default function BodyEditor({
       );
     };
 
+    const handleFileSelect = (index: number, file: File) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const arrayBuffer = e.target?.result;
+        onChangeFormDataFields?.(
+          formDataFields.map((f, i) =>
+            i === index
+              ? {
+                  ...f,
+                  value: file.name,
+                  fileData: {
+                    name: file.name,
+                    type: file.type,
+                    data: arrayBuffer as ArrayBuffer,
+                  },
+                }
+              : f,
+          ),
+        );
+      };
+      reader.readAsArrayBuffer(file);
+    };
+
     return (
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-          <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Body</span>
+          <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+            Body
+          </span>
           <select
             value={bodyType}
             onChange={(e) => onChangeBodyType(e.target.value as BodyType)}
@@ -265,7 +359,9 @@ export default function BodyEditor({
         <div className="flex-1 overflow-auto p-4">
           {formDataFields.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-400 dark:text-gray-500 text-sm">No form data yet</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">
+                No form data yet
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -274,18 +370,18 @@ export default function BodyEditor({
                   key={index}
                   className={`flex items-center gap-2 p-2 rounded border ${
                     field.enabled
-                      ? 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800'
-                      : 'border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-50'
+                      ? "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
+                      : "border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-50"
                   }`}
                 >
                   <button
                     onClick={() => handleToggleField(index)}
                     className={`w-5 h-5 flex items-center justify-center rounded border ${
                       field.enabled
-                        ? 'border-primary-500 bg-primary-500'
-                        : 'border-gray-300 dark:border-gray-600'
+                        ? "border-primary-500 bg-primary-500"
+                        : "border-gray-300 dark:border-gray-600"
                     }`}
-                    aria-label={field.enabled ? 'Disable' : 'Enable'}
+                    aria-label={field.enabled ? "Disable" : "Enable"}
                   >
                     {field.enabled && (
                       <svg
@@ -304,6 +400,30 @@ export default function BodyEditor({
                     )}
                   </button>
 
+                  <select
+                    value={field.type}
+                    onChange={(e) => {
+                      const newType = e.target.value as "text" | "file";
+                      onChangeFormDataFields?.(
+                        formDataFields.map((f, i) =>
+                          i === index
+                            ? {
+                                ...f,
+                                type: newType,
+                                value: newType === "text" ? f.value : "",
+                                fileData:
+                                  newType === "text" ? undefined : f.fileData,
+                              }
+                            : f,
+                        ),
+                      );
+                    }}
+                    className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                  >
+                    <option value="text">Text</option>
+                    <option value="file">File</option>
+                  </select>
+
                   <input
                     type="text"
                     value={field.key}
@@ -312,13 +432,54 @@ export default function BodyEditor({
                     className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
                   />
 
-                  <input
-                    type="text"
-                    value={field.value}
-                    onChange={(e) => handleUpdateValue(index, e.target.value)}
-                    placeholder="Value"
-                    className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                  />
+                  {field.type === "text" ? (
+                    <input
+                      type="text"
+                      value={field.value}
+                      onChange={(e) => handleUpdateValue(index, e.target.value)}
+                      placeholder="Value"
+                      className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                    />
+                  ) : (
+                    <div className="flex-1 flex items-center gap-2">
+                      {field.fileData ? (
+                        <span className="flex-1 text-gray-600 dark:text-gray-400 text-sm truncate">
+                          {field.fileData.name}
+                        </span>
+                      ) : (
+                        <span className="flex-1 text-gray-400 dark:text-gray-500 text-sm italic">
+                          No file selected
+                        </span>
+                      )}
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileSelect(index, file);
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement)
+                              .files?.[0];
+                            if (file) {
+                              handleFileSelect(index, file);
+                            }
+                          };
+                          input.click();
+                        }}
+                        className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                      >
+                        Choose
+                      </button>
+                    </div>
+                  )}
 
                   <button
                     onClick={() => handleRemoveField(index)}
@@ -347,33 +508,76 @@ export default function BodyEditor({
           {/* Add new field */}
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
             <div className="flex items-center gap-2">
+              <select
+                value={newFieldType}
+                onChange={(e) =>
+                  setNewFieldType(e.target.value as "text" | "file")
+                }
+                className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-700 rounded px-2 py-2 focus:outline-none focus:border-primary-500"
+              >
+                <option value="text">Text</option>
+                <option value="file">File</option>
+              </select>
               <input
                 type="text"
                 value={newKey}
                 onChange={(e) => setNewKey(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     handleAddField();
                   }
                 }}
                 placeholder="Key"
                 className="flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-primary-500"
               />
-              <input
-                type="text"
-                value={newValue}
-                onChange={(e) => setNewValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleAddField();
-                  }
-                }}
-                placeholder="Value"
-                className="flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-primary-500"
-              />
+              {newFieldType === "text" ? (
+                <input
+                  type="text"
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleAddField();
+                    }
+                  }}
+                  placeholder="Value"
+                  className="flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-primary-500"
+                />
+              ) : (
+                <div className="flex-1 flex items-center gap-2">
+                  {selectedFile ? (
+                    <span className="flex-1 text-gray-600 dark:text-gray-400 text-sm truncate">
+                      {selectedFile.name}
+                    </span>
+                  ) : (
+                    <span className="flex-1 text-gray-400 dark:text-gray-500 text-sm italic">
+                      No file selected
+                    </span>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setSelectedFile(file);
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
+                  >
+                    Choose File
+                  </button>
+                </div>
+              )}
               <button
                 onClick={handleAddField}
-                disabled={!newKey.trim()}
+                disabled={
+                  !newKey.trim() || (newFieldType === "file" && !selectedFile)
+                }
                 className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-medium transition-colors"
               >
                 Add
@@ -386,9 +590,9 @@ export default function BodyEditor({
   }
 
   // URL Encoded editor (same as form-data but with different data structure)
-  if (bodyType === 'urlencoded') {
-    const [newKey, setNewKey] = useState('');
-    const [newValue, setNewValue] = useState('');
+  if (bodyType === "urlencoded") {
+    const [newKey, setNewKey] = useState("");
+    const [newValue, setNewValue] = useState("");
 
     const handleAddField = () => {
       if (!newKey.trim()) {
@@ -399,12 +603,14 @@ export default function BodyEditor({
         ...urlencodedFields,
         { key: newKey.trim(), value: newValue.trim(), enabled: true },
       ]);
-      setNewKey('');
-      setNewValue('');
+      setNewKey("");
+      setNewValue("");
     };
 
     const handleRemoveField = (index: number) => {
-      onChangeUrlencodedFields?.(urlencodedFields.filter((_, i) => i !== index));
+      onChangeUrlencodedFields?.(
+        urlencodedFields.filter((_, i) => i !== index),
+      );
     };
 
     const handleToggleField = (index: number) => {
@@ -430,7 +636,9 @@ export default function BodyEditor({
     return (
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-          <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Body</span>
+          <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+            Body
+          </span>
           <select
             value={bodyType}
             onChange={(e) => onChangeBodyType(e.target.value as BodyType)}
@@ -450,7 +658,9 @@ export default function BodyEditor({
         <div className="flex-1 overflow-auto p-4">
           {urlencodedFields.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-400 dark:text-gray-500 text-sm">No URL encoded data yet</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">
+                No URL encoded data yet
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -459,18 +669,18 @@ export default function BodyEditor({
                   key={index}
                   className={`flex items-center gap-2 p-2 rounded border ${
                     field.enabled
-                      ? 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800'
-                      : 'border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-50'
+                      ? "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
+                      : "border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-50"
                   }`}
                 >
                   <button
                     onClick={() => handleToggleField(index)}
                     className={`w-5 h-5 flex items-center justify-center rounded border ${
                       field.enabled
-                        ? 'border-primary-500 bg-primary-500'
-                        : 'border-gray-300 dark:border-gray-600'
+                        ? "border-primary-500 bg-primary-500"
+                        : "border-gray-300 dark:border-gray-600"
                     }`}
-                    aria-label={field.enabled ? 'Disable' : 'Enable'}
+                    aria-label={field.enabled ? "Disable" : "Enable"}
                   >
                     {field.enabled && (
                       <svg
@@ -537,7 +747,7 @@ export default function BodyEditor({
                 value={newKey}
                 onChange={(e) => setNewKey(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     handleAddField();
                   }
                 }}
@@ -549,7 +759,7 @@ export default function BodyEditor({
                 value={newValue}
                 onChange={(e) => setNewValue(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     handleAddField();
                   }
                 }}
@@ -574,7 +784,9 @@ export default function BodyEditor({
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-        <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Body</span>
+        <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+          Body
+        </span>
         <select
           value={bodyType}
           onChange={(e) => onChangeBodyType(e.target.value as BodyType)}
@@ -589,7 +801,9 @@ export default function BodyEditor({
       </div>
 
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-gray-400 dark:text-gray-500 text-sm">This request has no body.</p>
+        <p className="text-gray-400 dark:text-gray-500 text-sm">
+          This request has no body.
+        </p>
       </div>
     </div>
   );
