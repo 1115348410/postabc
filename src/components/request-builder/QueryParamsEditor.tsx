@@ -59,119 +59,37 @@ export default function QueryParamsEditor({
       </div>
 
       <div className="flex-1 overflow-auto p-4">
-        {/* Add new parameter - always at top */}
-        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={newKey}
-              onChange={(e) => setNewKey(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleAddParam();
-                }
-              }}
-              placeholder="Key"
-              className="flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-primary-500"
-            />
-            <input
-              type="text"
-              value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleAddParam();
-                }
-              }}
-              placeholder="Value"
-              className="flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-base border border-gray-300 dark:border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-primary-500"
-            />
-            <button
-              onClick={handleAddParam}
-              disabled={!newKey.trim()}
-              className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-medium transition-colors"
-            >
-              Add
-            </button>
-          </div>
-        </div>
-
         {/* Params table */}
-        {params.length === 0 ? (
-          <div className="text-center py-8 text-gray-400 dark:text-gray-500">
-            <p className="text-sm">No query parameters yet</p>
-          </div>
-        ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                <th className="w-10 px-2 py-2 text-left font-medium"></th>
-                <th className="px-2 py-2 text-left font-medium">Key</th>
-                <th className="px-2 py-2 text-left font-medium">Value</th>
-                <th className="w-10 px-2 py-2 text-left font-medium"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {params.map((param, index) => (
-                <tr
-                  key={index}
-                  className={`border-b border-gray-100 dark:border-gray-800 ${
-                    param.enabled ? "" : "opacity-50"
-                  }`}
-                >
-                  <td className="px-2 py-1.5">
-                    <button
-                      onClick={() => handleToggleParam(index)}
-                      className={`w-5 h-5 flex items-center justify-center rounded border ${
-                        param.enabled
-                          ? "border-primary-500 bg-primary-500"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                      aria-label={param.enabled ? "Disable" : "Enable"}
-                    >
-                      {param.enabled && (
-                        <svg
-                          className="w-3 h-3 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <input
-                      type="text"
-                      value={param.key}
-                      onChange={(e) => handleUpdateKey(index, e.target.value)}
-                      placeholder="Key"
-                      className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                    />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <input
-                      type="text"
-                      value={param.value}
-                      onChange={(e) => handleUpdateValue(index, e.target.value)}
-                      placeholder="Value"
-                      className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
-                    />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <button
-                      onClick={() => handleRemoveParam(index)}
-                      className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
-                      aria-label="Remove parameter"
-                    >
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+              <th className="w-10 px-2 py-2 text-left font-medium"></th>
+              <th className="px-2 py-2 text-left font-medium">Key</th>
+              <th className="px-2 py-2 text-left font-medium">Value</th>
+              <th className="w-10 px-2 py-2 text-left font-medium"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {params.map((param, index) => (
+              <tr
+                key={index}
+                className={`border-b border-gray-100 dark:border-gray-800 ${
+                  param.enabled ? "" : "opacity-50"
+                }`}
+              >
+                <td className="px-2 py-1.5">
+                  <button
+                    onClick={() => handleToggleParam(index)}
+                    className={`w-5 h-5 flex items-center justify-center rounded border ${
+                      param.enabled
+                        ? "border-primary-500 bg-primary-500"
+                        : "border-gray-300 dark:border-gray-600"
+                    }`}
+                    aria-label={param.enabled ? "Disable" : "Enable"}
+                  >
+                    {param.enabled && (
                       <svg
-                        className="w-4 h-4"
+                        className="w-3 h-3 text-white"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -180,15 +98,129 @@ export default function QueryParamsEditor({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
+                          d="M5 13l4 4L19 7"
                         />
                       </svg>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    )}
+                  </button>
+                </td>
+                <td className="px-2 py-1.5">
+                  <input
+                    type="text"
+                    value={param.key}
+                    onChange={(e) => handleUpdateKey(index, e.target.value)}
+                    placeholder="Key"
+                    className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                  />
+                </td>
+                <td className="px-2 py-1.5">
+                  <input
+                    type="text"
+                    value={param.value}
+                    onChange={(e) => handleUpdateValue(index, e.target.value)}
+                    placeholder="Value"
+                    className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                  />
+                </td>
+                <td className="px-2 py-1.5">
+                  <button
+                    onClick={() => handleRemoveParam(index)}
+                    className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
+                    aria-label="Remove parameter"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {/* Add new row */}
+            <tr className="border-b border-gray-200 dark:border-gray-700">
+              <td className="px-2 py-1.5">
+                <span className="w-5 h-5 flex items-center justify-center text-gray-400">
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </span>
+              </td>
+              <td className="px-2 py-1.5">
+                <input
+                  type="text"
+                  value={newKey}
+                  onChange={(e) => setNewKey(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newKey.trim()) {
+                      handleAddParam();
+                    }
+                  }}
+                  placeholder="Key"
+                  className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                />
+              </td>
+              <td className="px-2 py-1.5">
+                <input
+                  type="text"
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newKey.trim()) {
+                      handleAddParam();
+                    }
+                  }}
+                  placeholder="Value (Enter to add)"
+                  className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+                />
+              </td>
+              <td className="px-2 py-1.5">
+                <button
+                  onClick={handleAddParam}
+                  disabled={!newKey.trim()}
+                  className="p-1 text-primary-500 hover:text-primary-600 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Add parameter"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        {params.length === 0 && (
+          <div className="text-center py-4 text-gray-400 dark:text-gray-500 text-sm">
+            Enter key and value, press Enter to add
+          </div>
         )}
       </div>
     </div>
