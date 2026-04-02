@@ -360,14 +360,21 @@ export default function BodyEditor({
         </span>
       </div>
       <div className="flex-1 overflow-auto p-4">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse table-fixed">
+          <colgroup>
+            <col className="w-10" />
+            <col className="w-28" />
+            <col className="w-48" />
+            <col className="w-auto" />
+            <col className="w-10" />
+          </colgroup>
           <thead>
             <tr className="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-              <th className="w-10 px-2 py-2 text-left font-medium"></th>
-              <th className="w-24 px-2 py-2 text-left font-medium">Type</th>
+              <th className="px-2 py-2 text-left font-medium"></th>
+              <th className="px-2 py-2 text-left font-medium">Type</th>
               <th className="px-2 py-2 text-left font-medium">Key</th>
               <th className="px-2 py-2 text-left font-medium">Value</th>
-              <th className="w-10 px-2 py-2 text-left font-medium"></th>
+              <th className="px-2 py-2 text-left font-medium"></th>
             </tr>
           </thead>
           <tbody>
@@ -376,7 +383,7 @@ export default function BodyEditor({
                 key={index}
                 className={`border-b border-gray-100 dark:border-gray-800 ${field.enabled ? "" : "opacity-50"}`}
               >
-                <td className="px-2 py-1.5">
+                <td className="px-2 py-1.5 w-10">
                   <button
                     onClick={() => formDataHandleToggleField(index)}
                     className={`w-5 h-5 flex items-center justify-center rounded border ${field.enabled ? "border-primary-500 bg-primary-500" : "border-gray-300 dark:border-gray-600"}`}
@@ -399,7 +406,7 @@ export default function BodyEditor({
                     )}
                   </button>
                 </td>
-                <td className="px-2 py-1.5">
+                <td className="px-2 py-1.5 w-28">
                   <select
                     value={field.type}
                     onChange={(e) =>
@@ -414,7 +421,7 @@ export default function BodyEditor({
                     <option value="file">File</option>
                   </select>
                 </td>
-                <td className="px-2 py-1.5">
+                <td className="px-2 py-1.5 w-48">
                   <input
                     type="text"
                     value={field.key}
@@ -425,7 +432,7 @@ export default function BodyEditor({
                     className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
                   />
                 </td>
-                <td className="px-2 py-1.5">
+                <td className="px-2 py-1.5 w-auto min-w-0">
                   {field.type === "text" ? (
                     <input
                       type="text"
@@ -465,7 +472,7 @@ export default function BodyEditor({
                     </div>
                   )}
                 </td>
-                <td className="px-2 py-1.5">
+                <td className="px-2 py-1.5 w-10">
                   <button
                     onClick={() => formDataHandleRemoveField(index)}
                     className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
@@ -489,7 +496,7 @@ export default function BodyEditor({
               </tr>
             ))}
             <tr className="border-b border-gray-200 dark:border-gray-700">
-              <td className="px-2 py-1.5">
+              <td className="px-2 py-1.5 w-10">
                 <span className="w-5 h-5 flex items-center justify-center text-gray-400">
                   <svg
                     className="w-3 h-3"
@@ -506,7 +513,7 @@ export default function BodyEditor({
                   </svg>
                 </span>
               </td>
-              <td className="px-2 py-1.5">
+              <td className="px-2 py-1.5 w-28">
                 <select
                   value={formDataNewFieldType}
                   onChange={(e) =>
@@ -518,7 +525,7 @@ export default function BodyEditor({
                   <option value="file">File</option>
                 </select>
               </td>
-              <td className="px-2 py-1.5">
+              <td className="px-2 py-1.5 w-48">
                 <input
                   type="text"
                   value={formDataNewKey}
@@ -531,7 +538,7 @@ export default function BodyEditor({
                   className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
                 />
               </td>
-              <td className="px-2 py-1.5">
+              <td className="px-2 py-1.5 w-auto min-w-0">
                 {formDataNewFieldType === "text" ? (
                   <input
                     type="text"
@@ -573,7 +580,7 @@ export default function BodyEditor({
                   </div>
                 )}
               </td>
-              <td className="px-2 py-1.5">
+              <td className="px-2 py-1.5 w-10">
                 <button
                   onClick={formDataHandleAddField}
                   disabled={
