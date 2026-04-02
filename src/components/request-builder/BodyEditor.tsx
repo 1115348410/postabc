@@ -71,6 +71,50 @@ export default function BodyEditor({
     { value: "raw", label: "Raw" },
   ];
 
+  // URL Encoded state - must be at top level
+  const [urlencodedNewKey, setUrlencodedNewKey] = useState("");
+  const [urlencodedNewValue, setUrlencodedNewValue] = useState("");
+
+  const urlencodedHandleAddField = () => {
+    if (!urlencodedNewKey.trim()) {
+      return;
+    }
+    onChangeUrlencodedFields?.([
+      ...urlencodedFields,
+      {
+        key: urlencodedNewKey.trim(),
+        value: urlencodedNewValue.trim(),
+        enabled: true,
+      },
+    ]);
+    setUrlencodedNewKey("");
+    setUrlencodedNewValue("");
+  };
+
+  const urlencodedHandleRemoveField = (index: number) => {
+    onChangeUrlencodedFields?.(urlencodedFields.filter((_, i) => i !== index));
+  };
+
+  const urlencodedHandleToggleField = (index: number) => {
+    onChangeUrlencodedFields?.(
+      urlencodedFields.map((f, i) =>
+        i === index ? { ...f, enabled: !f.enabled } : f,
+      ),
+    );
+  };
+
+  const urlencodedHandleUpdateKey = (index: number, key: string) => {
+    onChangeUrlencodedFields?.(
+      urlencodedFields.map((f, i) => (i === index ? { ...f, key } : f)),
+    );
+  };
+
+  const urlencodedHandleUpdateValue = (index: number, value: string) => {
+    onChangeUrlencodedFields?.(
+      urlencodedFields.map((f, i) => (i === index ? { ...f, value } : f)),
+    );
+  };
+
   // JSON body editor
   if (bodyType === "json") {
     const jsonValidation = useMemo(() => validateJson(jsonBody), [jsonBody]);
@@ -629,50 +673,8 @@ export default function BodyEditor({
     );
   }
 
-  // URL Encoded editor (same as form-data but with different data structure)
+  // URL Encoded editor
   if (bodyType === "urlencoded") {
-    const [newKey, setNewKey] = useState("");
-    const [newValue, setNewValue] = useState("");
-
-    const handleAddField = () => {
-      if (!newKey.trim()) {
-        return;
-      }
-
-      onChangeUrlencodedFields?.([
-        ...urlencodedFields,
-        { key: newKey.trim(), value: newValue.trim(), enabled: true },
-      ]);
-      setNewKey("");
-      setNewValue("");
-    };
-
-    const handleRemoveField = (index: number) => {
-      onChangeUrlencodedFields?.(
-        urlencodedFields.filter((_, i) => i !== index),
-      );
-    };
-
-    const handleToggleField = (index: number) => {
-      onChangeUrlencodedFields?.(
-        urlencodedFields.map((f, i) =>
-          i === index ? { ...f, enabled: !f.enabled } : f,
-        ),
-      );
-    };
-
-    const handleUpdateKey = (index: number, key: string) => {
-      onChangeUrlencodedFields?.(
-        urlencodedFields.map((f, i) => (i === index ? { ...f, key } : f)),
-      );
-    };
-
-    const handleUpdateValue = (index: number, value: string) => {
-      onChangeUrlencodedFields?.(
-        urlencodedFields.map((f, i) => (i === index ? { ...f, value } : f)),
-      );
-    };
-
     return (
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
@@ -715,7 +717,7 @@ export default function BodyEditor({
                 >
                   <td className="px-2 py-1.5">
                     <button
-                      onClick={() => handleToggleField(index)}
+                      onClick={() => urlencodedHandleToggleField(index)}
                       className={`w-5 h-5 flex items-center justify-center rounded border ${
                         field.enabled
                           ? "border-primary-500 bg-primary-500"
@@ -744,7 +746,9 @@ export default function BodyEditor({
                     <input
                       type="text"
                       value={field.key}
-                      onChange={(e) => handleUpdateKey(index, e.target.value)}
+                      onChange={(e) =>
+                        urlencodedHandleUpdateKey(index, e.target.value)
+                      }
                       placeholder="Key"
                       className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
                     />
@@ -753,14 +757,16 @@ export default function BodyEditor({
                     <input
                       type="text"
                       value={field.value}
-                      onChange={(e) => handleUpdateValue(index, e.target.value)}
+                      onChange={(e) =>
+                        urlencodedHandleUpdateValue(index, e.target.value)
+                      }
                       placeholder="Value"
                       className="w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
                     />
                   </td>
                   <td className="px-2 py-1.5">
                     <button
-                      onClick={() => handleRemoveField(index)}
+                      onClick={() => urlencodedHandleRemoveField(index)}
                       className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
                       aria-label="Remove field"
                     >
@@ -781,7 +787,6 @@ export default function BodyEditor({
                   </td>
                 </tr>
               ))}
-              {/* Add new row */}
               <tr className="border-b border-gray-200 dark:border-gray-700">
                 <td className="px-2 py-1.5">
                   <span className="w-5 h-5 flex items-center justify-center text-gray-400">
@@ -803,11 +808,11 @@ export default function BodyEditor({
                 <td className="px-2 py-1.5">
                   <input
                     type="text"
-                    value={newKey}
-                    onChange={(e) => setNewKey(e.target.value)}
+                    value={urlencodedNewKey}
+                    onChange={(e) => setUrlencodedNewKey(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && newKey.trim()) {
-                        handleAddField();
+                      if (e.key === "Enter" && urlencodedNewKey.trim()) {
+                        urlencodedHandleAddField();
                       }
                     }}
                     placeholder="Key"
@@ -817,11 +822,11 @@ export default function BodyEditor({
                 <td className="px-2 py-1.5">
                   <input
                     type="text"
-                    value={newValue}
-                    onChange={(e) => setNewValue(e.target.value)}
+                    value={urlencodedNewValue}
+                    onChange={(e) => setUrlencodedNewValue(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && newKey.trim()) {
-                        handleAddField();
+                      if (e.key === "Enter" && urlencodedNewKey.trim()) {
+                        urlencodedHandleAddField();
                       }
                     }}
                     placeholder="Value (Enter to add)"
@@ -830,8 +835,8 @@ export default function BodyEditor({
                 </td>
                 <td className="px-2 py-1.5">
                   <button
-                    onClick={handleAddField}
-                    disabled={!newKey.trim()}
+                    onClick={urlencodedHandleAddField}
+                    disabled={!urlencodedNewKey.trim()}
                     className="p-1 text-primary-500 hover:text-primary-600 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
                     aria-label="Add field"
                   >
