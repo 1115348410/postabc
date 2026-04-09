@@ -107,6 +107,53 @@ export default function RequestEditor({
     initialRequest?.streamConfig || DEFAULT_STREAM_CONFIG,
   );
 
+  const parseUrlAndExtractParams = useCallback(
+    (inputUrl: string): { cleanUrl: string; params: QueryParam[] } => {
+      try {
+        const urlObj = new URL(inputUrl);
+        const searchParams = urlObj.searchParams;
+        const extractedParams: QueryParam[] = [];
+
+        searchParams.forEach((value, key) => {
+          extractedParams.push({
+            key,
+            value,
+            enabled: true,
+          });
+        });
+
+        urlObj.search = "";
+        const cleanUrl = urlObj.toString();
+
+        return { cleanUrl, params: extractedParams };
+      } catch {
+        return { cleanUrl: inputUrl, params: [] };
+      }
+    },
+    [],
+  );
+
+  const handleUrlChange = useCallback(
+    (newUrl: string) => {
+      setUrl(newUrl);
+
+      if (newUrl.includes("?")) {
+        const { cleanUrl, params } = parseUrlAndExtractParams(newUrl);
+        if (params.length > 0) {
+          setUrl(cleanUrl);
+          setQueryParams((prev) => {
+            const existingParams = prev.filter(
+              (p) =>
+                p.enabled && p.key && !params.some((np) => np.key === p.key),
+            );
+            return [...existingParams, ...params];
+          });
+        }
+      }
+    },
+    [parseUrlAndExtractParams],
+  );
+
   useEffect(() => {
     loadEnvironmentVariables();
   }, []);
@@ -561,7 +608,7 @@ export default function RequestEditor({
         <input
           type="text"
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={(e) => handleUrlChange(e.target.value)}
           placeholder="输入请求 URL"
           className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-primary-500"
           onKeyDown={(e) => {
