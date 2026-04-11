@@ -13,11 +13,20 @@ interface ResponsePanelProps {
 
 /**
  * 从 SSE 事件数据中提取指定路径的值
+ * 支持 $ 作为根对象引用
  */
 function extractValue(data: any, path: string): any {
   if (!data || !path) return undefined;
 
-  const parts = path.split(/\.|\[|\]/).filter(Boolean);
+  // 处理 $ 前缀
+  let normalizedPath = path.trim();
+  if (normalizedPath.startsWith('$.')) {
+    normalizedPath = normalizedPath.slice(2);
+  } else if (normalizedPath.startsWith('$')) {
+    normalizedPath = normalizedPath.slice(1);
+  }
+
+  const parts = normalizedPath.split(/\.|\[|\]/).filter(Boolean);
   let current = data;
 
   for (const part of parts) {

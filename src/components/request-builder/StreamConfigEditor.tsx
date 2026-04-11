@@ -12,28 +12,6 @@ const DEFAULT_RULE: StreamExtractionRule = {
   concatenate: true,
 };
 
-// 预设配置
-const PRESETS = {
-  openai: {
-    name: 'OpenAI 格式',
-    rules: [
-      { path: 'choices[0].delta.content', alias: 'content', concatenate: true },
-      { path: 'choices[0].finish_reason', alias: 'finish_reason', concatenate: false },
-    ],
-  },
-  anthropic: {
-    name: 'Anthropic 格式',
-    rules: [
-      { path: 'content', alias: 'content', concatenate: true },
-      { path: 'type', alias: 'type', concatenate: false },
-    ],
-  },
-  custom: {
-    name: '其他',
-    rules: [],
-  },
-};
-
 export default function StreamConfigEditor({ config, onChange }: Props) {
   const handleToggleStreaming = () => {
     onChange({
@@ -73,32 +51,6 @@ export default function StreamConfigEditor({ config, onChange }: Props) {
     });
   };
 
-  const handleLoadPreset = (preset: 'openai' | 'anthropic' | 'custom') => {
-    const presetConfig = PRESETS[preset];
-    onChange({
-      ...config,
-      enabled: preset !== 'custom',
-      extractionRules: preset === 'custom' ? [] : presetConfig.rules.map(r => ({ ...r })),
-    });
-  };
-
-  // 检测当前是否匹配某个预设
-  const detectCurrentPreset = (): string | null => {
-    if (config.extractionRules.length === 2) {
-      const r0 = config.extractionRules[0];
-      const r1 = config.extractionRules[1];
-      if (r0.path === 'choices[0].delta.content' && r0.alias === 'content') {
-        return 'openai';
-      }
-      if (r0.path === 'content' && r0.alias === 'content') {
-        return 'anthropic';
-      }
-    }
-    return null;
-  };
-
-  const currentPreset = detectCurrentPreset();
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -118,49 +70,6 @@ export default function StreamConfigEditor({ config, onChange }: Props) {
             </label>
           </div>
         </div>
-
-        {config.enabled && (
-          <div className="mt-3 space-y-3">
-            {/* 预设选择 */}
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400 mb-2 block">
-                快速选择预设格式
-              </label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleLoadPreset('openai')}
-                  className={`px-3 py-1.5 text-xs rounded border transition-colors ${
-                    currentPreset === 'openai'
-                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-primary-400'
-                  }`}
-                >
-                  OpenAI 格式
-                </button>
-                <button
-                  onClick={() => handleLoadPreset('anthropic')}
-                  className={`px-3 py-1.5 text-xs rounded border transition-colors ${
-                    currentPreset === 'anthropic'
-                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-primary-400'
-                  }`}
-                >
-                  Anthropic 格式
-                </button>
-                <button
-                  onClick={() => handleLoadPreset('custom')}
-                  className={`px-3 py-1.5 text-xs rounded border transition-colors ${
-                    currentPreset === 'custom' || !currentPreset
-                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-primary-400'
-                  }`}
-                >
-                  其他
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Extraction Rules */}
@@ -181,7 +90,7 @@ export default function StreamConfigEditor({ config, onChange }: Props) {
           {config.extractionRules.length === 0 ? (
             <div className="text-center py-8 text-gray-400 dark:text-gray-500">
               <p className="text-sm">暂无提取规则</p>
-              <p className="text-xs mt-1">点击上方预设按钮快速配置，或点击"添加规则"自定义</p>
+              <p className="text-xs mt-1">点击"添加规则"自定义字段提取路径</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -201,7 +110,7 @@ export default function StreamConfigEditor({ config, onChange }: Props) {
                             type="text"
                             value={rule.path}
                             onChange={(e) => handleRuleChange(index, 'path', e.target.value)}
-                            placeholder="例如: choices[0].delta.content"
+                            placeholder="例如: $.choices[0].delta.content"
                             className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary-500"
                           />
                         </div>
@@ -245,9 +154,9 @@ export default function StreamConfigEditor({ config, onChange }: Props) {
               路径表达式说明
             </p>
             <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
-              <li>• 使用点号访问对象属性: <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">data.content</code></li>
-              <li>• 使用方括号访问数组: <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">choices[0].text</code></li>
-              <li>• 组合使用: <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">data.choices[0].delta.content</code></li>
+              <li>• 使用 <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">$</code> 表示根对象</li>
+              <li>• 使用点号访问对象属性: <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">$.data.content</code></li>
+              <li>• 使用方括号访问数组: <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">$.choices[0].text</code></li>
             </ul>
           </div>
         </div>

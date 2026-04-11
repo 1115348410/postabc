@@ -19,6 +19,103 @@ import { ApiSyncPanel } from './ApiSyncPanel';
 import { validateRequestConfig, sanitizeUrl } from '../utils/validation';
 import { getEnvironmentVariablesMap } from '../services/environment-service';
 
+// 从 URL 中解析查询参数（手动解析，更可靠）
+function parseQueryParamsFromUrl(urlString: string): QueryParam[] {
+  console.log('[parseQueryParamsFromUrl] 开始解析:', urlString);
+
+  // 查找查询字符串的起始位置
+  const queryIndex = urlString.indexOf('?');
+  if (queryIndex === -1) {
+    console.log('[parseQueryParamsFromUrl] 没有找到查询参数');
+    return [];
+  }
+
+  // 提取查询字符串部分（去掉 hash 部分）
+  let queryString = urlString.substring(queryIndex + 1);
+  const hashIndex = queryString.indexOf('#');
+  if (hashIndex !== -1) {
+    queryString = queryString.substring(0, hashIndex);
+  }
+
+  console.log('[parseQueryParamsFromUrl] 查询字符串:', queryString);
+
+  if (!queryString.trim()) {
+    return [];
+  }
+
+  const params: QueryParam[] = [];
+  const pairs = queryString.split('&');
+
+  for (const pair of pairs) {
+    if (!pair.trim()) continue;
+
+    const equalIndex = pair.indexOf('=');
+    if (equalIndex === -1) {
+      // 没有 = 号，只有 key
+      params.push({
+        key: decodeURIComponent(pair.trim()),
+        value: '',
+        enabled: true
+      });
+    } else {
+      const key = pair.substring(0, equalIndex);
+      const value = pair.substring(equalIndex + 1);
+      params.push({
+        key: decodeURIComponent(key.trim()),
+        value: decodeURIComponent(value.trim()),
+        enabled: true
+      });
+    }
+  }
+
+  console.log('[parseQueryParamsFromUrl] 解析结果:', params);
+  return params;
+}
+
+// 从 URL 中移除查询参数，返回基础 URL
+function getBaseUrl(urlString: string): string {
+  const queryIndex = urlString.indexOf('?');
+  const hashIndex = urlString.indexOf('#');
+
+  if (queryIndex === -1) {
+    return urlString;
+  }
+
+  // 截取 ? 之前的部分
+  let baseUrl = urlString.substring(0, queryIndex);
+
+  // 如果有 hash，保留 hash
+  if (hashIndex !== -1 && hashIndex > queryIndex) {
+    baseUrl += urlString.substring(hashIndex);
+  }
+
+  return baseUrl;
+}
+
+// 将查询参数合并到 URL 中
+function buildUrlWithParams(baseUrl: string, params: QueryParam[]): string {
+  try {
+    const url = new URL(baseUrl);
+    params.forEach((param) => {
+      if (param.enabled && param.key.trim()) {
+        url.searchParams.set(param.key, param.value);
+      }
+    });
+    return url.toString();
+  } catch {
+    // URL 无效时，尝试手动拼接
+    const enabledParams = params.filter((p) => p.enabled && p.key.trim());
+    if (enabledParams.length === 0) {
+      return baseUrl;
+    }
+    const queryString = enabledParams
+      .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
+      .join('&');
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    return `${baseUrl}${separator}${queryString}`;
+  }
+}
+
 // 默认流式配置
 const DEFAULT_STREAM_CONFIG: StreamConfig = {
   enabled: false,
@@ -44,6 +141,44 @@ export default function DevToolsPanel() {
   // Request data state
   const [headers, setHeaders] = useState<RequestHeader[]>([]);
   const [queryParams, setQueryParams] = useState<QueryParam[]>([]);
+
+  // 用于防止循环更新的标记
+  const isUpdatingFromParamsRef = useRef(false);
+
+  // URL 和 QueryParams 联动：当 URL 变化时，解析查询参数并同步到 queryParams
+  const handleUrlChange = useCallback((newUrl: string) => {
+    // 如果是从 params 更新触发的，跳过解析
+    if (isUpdatingFromParamsRef.current) {
+      isUpdatingFromParamsRef.current = false;
+      setUrl(newUrl);
+      return;
+    }
+
+    console.log('[handleUrlChange] 输入 URL:', newUrl);
+    const parsedParams = parseQueryParamsFromUrl(newUrl);
+    console.log('[handleUrlChange] 解析出的参数:', parsedParams);
+    if (parsedParams.length > 0) {
+      // 如果解析出参数，更新 queryParams
+      setQueryParams(parsedParams);
+      // 同时更新 URL 为不带查询参数的基础 URL
+      const baseUrl = getBaseUrl(newUrl);
+      console.log('[handleUrlChange] 基础 URL:', baseUrl);
+      setUrl(baseUrl);
+    } else {
+      // 没有参数时，直接设置 URL
+      setUrl(newUrl);
+    }
+  }, []);
+
+  // URL 和 QueryParams 联动：当 queryParams 变化时，更新 URL
+  const handleQueryParamsChange = useCallback((newParams: QueryParam[]) => {
+    setQueryParams(newParams);
+    // 标记正在从 params 更新，避免循环
+    isUpdatingFromParamsRef.current = true;
+    // 将 queryParams 合并到当前 URL
+    const newUrl = buildUrlWithParams(url, newParams);
+    setUrl(newUrl);
+  }, [url]);
   const [bodyType, setBodyType] = useState<BodyType>('none');
   const [jsonBody, setJsonBody] = useState('');
   const [rawBody, setRawBody] = useState('');
@@ -151,6 +286,7 @@ export default function DevToolsPanel() {
       preRequestScript,
       testScript,
       timeout: 30000,
+      streamConfig,
     };
 
     // 验证请求配置
@@ -400,7 +536,17 @@ export default function DevToolsPanel() {
             <input
               type="text"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => handleUrlChange(e.target.value)}
+              onPaste={(e) => {
+                // 获取粘贴的内容
+                const pastedText = e.clipboardData.getData('text');
+                if (pastedText && pastedText.includes('?')) {
+                  // 阻止默认粘贴行为，手动处理
+                  e.preventDefault();
+                  // 直接处理粘贴的 URL
+                  handleUrlChange(pastedText);
+                }
+              }}
               placeholder="Enter request URL"
               className="flex-1 bg-gray-800 text-white border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-primary-500"
               onKeyDown={(e) => {
@@ -444,7 +590,7 @@ export default function DevToolsPanel() {
           {/* Request content */}
           <div className="flex-1 overflow-hidden">
             {activeTab === 'params' && (
-              <QueryParamsEditor params={queryParams} onChange={setQueryParams} />
+              <QueryParamsEditor params={queryParams} onChange={handleQueryParamsChange} />
             )}
             {activeTab === 'headers' && (
               <HeadersEditor
