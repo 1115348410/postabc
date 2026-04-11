@@ -21,16 +21,26 @@ export interface ExtractedField {
 
 /**
  * Parse a path expression into segments
+ * Supports $ as root object reference
+ * Example: "$.choices[0].delta.content" -> ["choices", "0", "delta", "content"]
  * Example: "data.choices[0].delta.content" -> ["data", "choices", "0", "delta", "content"]
  */
 function parsePath(path: string): (string | number)[] {
   const segments: (string | number)[] = [];
-  
+
+  // Remove leading $ and following dot if present
+  let normalizedPath = path.trim();
+  if (normalizedPath.startsWith('$.')) {
+    normalizedPath = normalizedPath.slice(2);
+  } else if (normalizedPath.startsWith('$')) {
+    normalizedPath = normalizedPath.slice(1);
+  }
+
   // Match both dot notation and bracket notation
   const regex = /([^.[\]]+)|\[(\d+)\]/g;
   let match;
-  
-  while ((match = regex.exec(path)) !== null) {
+
+  while ((match = regex.exec(normalizedPath)) !== null) {
     if (match[1] !== undefined) {
       // Property name
       segments.push(match[1]);
@@ -39,7 +49,7 @@ function parsePath(path: string): (string | number)[] {
       segments.push(parseInt(match[2], 10));
     }
   }
-  
+
   return segments;
 }
 
@@ -174,22 +184,22 @@ export function tryParseJson(data: string): any | null {
  */
 export const DEFAULT_LLM_RULES: ExtractionRule[] = [
   {
-    path: 'choices[0].delta.content',
+    path: '$.choices[0].delta.content',
     alias: 'content',
     concatenate: true,
   },
   {
-    path: 'choices[0].text',
+    path: '$.choices[0].text',
     alias: 'text',
     concatenate: true,
   },
   {
-    path: 'message.content',
+    path: '$.message.content',
     alias: 'message',
     concatenate: true,
   },
   {
-    path: 'data',
+    path: '$.data',
     alias: 'data',
   },
 ];

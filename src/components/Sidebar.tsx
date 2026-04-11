@@ -256,6 +256,27 @@ export default function Sidebar({ onSelectRequest, onOpenInNewTab, onSaveRequest
         console.warn('解析params失败:', e);
       }
 
+      // 解析流式配置 sseFlag 和 ssePaths
+      let streamConfig: RequestConfig['streamConfig'] = {
+        enabled: false,
+        extractionRules: [],
+        displayMode: 'concatenated',
+      };
+      try {
+        if (detail.sseFlag && detail.ssePaths) {
+          const extractionRules = JSON.parse(detail.ssePaths);
+          if (Array.isArray(extractionRules)) {
+            streamConfig = {
+              enabled: true,
+              extractionRules,
+              displayMode: 'concatenated',
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('解析ssePaths失败:', e);
+      }
+
       // 转换到 RequestConfig
       const request: RequestConfig = {
         method: detail.method as RequestConfig['method'],
@@ -264,6 +285,7 @@ export default function Sidebar({ onSelectRequest, onOpenInNewTab, onSaveRequest
         queryParams,
         bodyType: (detail.bodyType || 'json') as RequestConfig['bodyType'],
         body,
+        streamConfig,
       };
 
       // 优先使用onOpenInNewTab创建新Tab，否则使用onSelectRequest更新当前Tab

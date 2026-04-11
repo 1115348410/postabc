@@ -213,8 +213,8 @@ export default function SaveRequestDialog({
           bodyContent: bodyContent,
           preScript: '',
           testScript: '',
-          sseFlag: false,
-          ssePaths: '{}'
+          sseFlag: request.streamConfig?.enabled || false,
+          ssePaths: JSON.stringify(request.streamConfig?.extractionRules || [])
         });
         // 同时更新名称
         await apiClient.updateApiName(apiUuid, name.trim());
@@ -233,8 +233,8 @@ export default function SaveRequestDialog({
             bodyContent: bodyContent,
             preScript: '',
             testScript: '',
-            sseFlag: false,
-            ssePaths: '{}'
+            sseFlag: request.streamConfig?.enabled || false,
+            ssePaths: JSON.stringify(request.streamConfig?.extractionRules || [])
           }
         );
         onSaveSuccess(newUuid, selectedFolderUuid, name.trim());
