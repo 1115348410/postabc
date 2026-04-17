@@ -94,6 +94,43 @@ function getBaseUrl(urlString: string): string {
   return baseUrl;
 }
 
+// 从 request.body 对象中提取字符串类型的 body 内容
+function extractBodyString(
+  body: RequestConfig["body"],
+  bodyType: BodyType,
+): string | undefined {
+  if (!body) return undefined;
+
+  switch (bodyType) {
+    case "json":
+      return body.json;
+    case "raw":
+      return body.raw;
+    case "form-data":
+      if (body.form && body.form.length > 0) {
+        return body.form
+          .map(
+            (f) =>
+              `${encodeURIComponent(f.key)}=${encodeURIComponent(f.value)}`,
+          )
+          .join("&");
+      }
+      return undefined;
+    case "urlencoded":
+      if (body.urlencoded && body.urlencoded.length > 0) {
+        return body.urlencoded
+          .map(
+            (f) =>
+              `${encodeURIComponent(f.key)}=${encodeURIComponent(f.value)}`,
+          )
+          .join("&");
+      }
+      return undefined;
+    default:
+      return undefined;
+  }
+}
+
 // 将查询参数合并到 URL 中
 function buildUrlWithParams(baseUrl: string, params: QueryParam[]): string {
   try {
@@ -408,10 +445,7 @@ export default function RequestEditor({
                   (acc, h) => ({ ...acc, [h.key]: h.value }),
                   {} as Record<string, string>,
                 ),
-                body:
-                  typeof request.body === "string"
-                    ? request.body
-                    : JSON.stringify(request.body),
+                body: extractBodyString(request.body, bodyType),
               },
             };
             updateTabResponse(tabId, streamResponse);
@@ -441,10 +475,7 @@ export default function RequestEditor({
                   (acc, h) => ({ ...acc, [h.key]: h.value }),
                   {} as Record<string, string>,
                 ),
-                body:
-                  typeof request.body === "string"
-                    ? request.body
-                    : JSON.stringify(request.body),
+                body: extractBodyString(request.body, bodyType),
               },
             };
             updateTabResponse(tabId, sseResponse);
@@ -461,10 +492,7 @@ export default function RequestEditor({
                   (acc, h) => ({ ...acc, [h.key]: h.value }),
                   {} as Record<string, string>,
                 ),
-                body:
-                  typeof request.body === "string"
-                    ? request.body
-                    : JSON.stringify(request.body),
+                body: extractBodyString(request.body, bodyType),
               },
             });
           });
@@ -488,10 +516,7 @@ export default function RequestEditor({
                 (acc, h) => ({ ...acc, [h.key]: h.value }),
                 {} as Record<string, string>,
               ),
-              body:
-                typeof request.body === "string"
-                  ? request.body
-                  : JSON.stringify(request.body),
+              body: extractBodyString(request.body, bodyType),
             },
           };
           updateTabResponse(tabId, errorResponse);
@@ -526,10 +551,7 @@ export default function RequestEditor({
               (acc, h) => ({ ...acc, [h.key]: h.value }),
               {} as Record<string, string>,
             ),
-            body:
-              typeof request.body === "string"
-                ? request.body
-                : JSON.stringify(request.body),
+            body: extractBodyString(request.body, bodyType),
           },
         };
         updateTabResponse(tabId, errorResponse);
@@ -574,10 +596,7 @@ export default function RequestEditor({
           (acc, h) => ({ ...acc, [h.key]: h.value }),
           {} as Record<string, string>,
         ),
-        body:
-          typeof request.body === "string"
-            ? request.body
-            : JSON.stringify(request.body),
+        body: extractBodyString(request.body, bodyType),
       },
     };
     updateTabResponse(tabId, cancelResponse);
