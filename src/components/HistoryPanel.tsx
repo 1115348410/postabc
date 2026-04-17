@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { storageAPI, type RequestHistoryItem } from '../storage/indexed-db';
-import type { RequestConfig } from '../types';
+import React, { useState, useEffect } from "react";
+import { storageAPI, type RequestHistoryItem } from "../storage/indexed-db";
+import type { RequestConfig } from "../types";
 
 interface HistoryPanelProps {
   isOpen: boolean;
@@ -8,9 +8,13 @@ interface HistoryPanelProps {
   onSelectRequest?: (request: RequestConfig) => void;
 }
 
-export default function HistoryPanel({ isOpen, onClose, onSelectRequest }: HistoryPanelProps) {
+export default function HistoryPanel({
+  isOpen,
+  onClose,
+  onSelectRequest,
+}: HistoryPanelProps) {
   const [history, setHistory] = useState<RequestHistoryItem[]>([]);
-  const [filter, setFilter] = useState('');
+  const [filter, setFilter] = useState("");
 
   useEffect(() => {
     if (isOpen) {
@@ -29,21 +33,24 @@ export default function HistoryPanel({ isOpen, onClose, onSelectRequest }: Histo
   };
 
   const handleClearAll = async () => {
-    if (confirm('Are you sure you want to clear all history?')) {
+    if (confirm("Are you sure you want to clear all history?")) {
       await storageAPI.clearRequestHistory();
       await loadHistory();
     }
   };
 
   const handleSelectItem = (item: RequestHistoryItem) => {
-    onSelectRequest?.(item.request);
+    if (item.request) {
+      onSelectRequest?.(item.request);
+    }
     onClose();
   };
 
   const filteredHistory = history.filter(
     (item) =>
-      item.request.url.toLowerCase().includes(filter.toLowerCase()) ||
-      item.request.method.toLowerCase().includes(filter.toLowerCase()),
+      item.request &&
+      (item.request.url?.toLowerCase().includes(filter.toLowerCase()) ||
+        item.request.method?.toLowerCase().includes(filter.toLowerCase())),
   );
 
   const formatDate = (timestamp: number) => {
@@ -54,29 +61,29 @@ export default function HistoryPanel({ isOpen, onClose, onSelectRequest }: Histo
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
     if (days > 0) {
-      return `${days} day${days > 1 ? 's' : ''} ago`;
+      return `${days} day${days > 1 ? "s" : ""} ago`;
     }
     if (hours > 0) {
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
     }
     if (diff > 1000 * 60) {
       return `${Math.floor(diff / (1000 * 60))} min ago`;
     }
-    return 'Just now';
+    return "Just now";
   };
 
   const getMethodColor = (method: string) => {
     const colors: Record<string, string> = {
-      GET: 'text-success-400',
-      POST: 'text-primary-400',
-      PUT: 'text-warning-400',
-      PATCH: 'text-warning-400',
-      DELETE: 'text-danger-400',
-      HEAD: 'text-purple-400',
-      OPTIONS: 'text-purple-400',
-      TRACE: 'text-gray-400',
+      GET: "text-success-400",
+      POST: "text-primary-400",
+      PUT: "text-warning-400",
+      PATCH: "text-warning-400",
+      DELETE: "text-danger-400",
+      HEAD: "text-purple-400",
+      OPTIONS: "text-purple-400",
+      TRACE: "text-gray-400",
     };
-    return colors[method] || 'text-gray-400';
+    return colors[method] || "text-gray-400";
   };
 
   if (!isOpen) {
@@ -88,7 +95,9 @@ export default function HistoryPanel({ isOpen, onClose, onSelectRequest }: Histo
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-4xl max-h-[80vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Request History</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Request History
+          </h2>
           <div className="flex items-center gap-2">
             <button
               onClick={handleClearAll}
@@ -133,7 +142,7 @@ export default function HistoryPanel({ isOpen, onClose, onSelectRequest }: Histo
           {filteredHistory.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-400 dark:text-gray-500 text-sm">
-                {filter ? 'No matching requests found' : 'No history yet'}
+                {filter ? "No matching requests found" : "No history yet"}
               </p>
             </div>
           ) : (
@@ -144,17 +153,20 @@ export default function HistoryPanel({ isOpen, onClose, onSelectRequest }: Histo
                   className="flex items-center gap-4 px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                   onClick={() => handleSelectItem(item)}
                 >
-                  <span className={`text-xs font-mono font-medium ${getMethodColor(item.request.method)} min-w-[60px]`}>
-                    {item.request.method}
+                  <span
+                    className={`text-xs font-mono font-medium ${getMethodColor(item.request?.method || "GET")} min-w-[60px]`}
+                  >
+                    {item.request?.method || "GET"}
                   </span>
 
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                      {item.request.url}
+                      {item.request?.url || "Unknown URL"}
                     </p>
                     {item.response && (
                       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        {item.response.status} {item.response.statusText} · {(item.response.time || 0).toFixed(0)}ms
+                        {item.response.status} {item.response.statusText} ·{" "}
+                        {(item.response.time || 0).toFixed(0)}ms
                       </p>
                     )}
                   </div>
