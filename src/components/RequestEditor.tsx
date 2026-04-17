@@ -438,6 +438,15 @@ export default function RequestEditor({
               time: 0,
               timestamp: Date.now(),
               logs: [],
+              request: {
+                method: request.method,
+                url: request.url,
+                headers: request.headers.reduce(
+                  (acc, h) => ({ ...acc, [h.key]: h.value }),
+                  {} as Record<string, string>,
+                ),
+                body: extractBodyString(request.body, bodyType),
+              },
             };
             updateTabResponse(tabId, streamResponse);
           });
@@ -459,13 +468,33 @@ export default function RequestEditor({
                 extractedFields:
                   finalExtractedFields || result.data.body?.extractedFields,
               },
+              request: {
+                method: request.method,
+                url: request.url,
+                headers: request.headers.reduce(
+                  (acc, h) => ({ ...acc, [h.key]: h.value }),
+                  {} as Record<string, string>,
+                ),
+                body: extractBodyString(request.body, bodyType),
+              },
             };
             updateTabResponse(tabId, sseResponse);
           });
         } else {
           // 非 SSE 响应，直接设置响应
           flushSync(() => {
-            updateTabResponse(tabId, result.data);
+            updateTabResponse(tabId, {
+              ...result.data,
+              request: {
+                method: request.method,
+                url: request.url,
+                headers: request.headers.reduce(
+                  (acc, h) => ({ ...acc, [h.key]: h.value }),
+                  {} as Record<string, string>,
+                ),
+                body: extractBodyString(request.body, bodyType),
+              },
+            });
           });
         }
       } else if (result.error) {
@@ -480,6 +509,15 @@ export default function RequestEditor({
             time: 0,
             timestamp: Date.now(),
             logs: [],
+            request: {
+              method: request.method,
+              url: request.url,
+              headers: request.headers.reduce(
+                (acc, h) => ({ ...acc, [h.key]: h.value }),
+                {} as Record<string, string>,
+              ),
+              body: extractBodyString(request.body, bodyType),
+            },
           };
           updateTabResponse(tabId, errorResponse);
         });
@@ -506,6 +544,15 @@ export default function RequestEditor({
           time: 0,
           timestamp: Date.now(),
           logs: [],
+          request: {
+            method: request.method,
+            url: request.url,
+            headers: request.headers.reduce(
+              (acc, h) => ({ ...acc, [h.key]: h.value }),
+              {} as Record<string, string>,
+            ),
+            body: extractBodyString(request.body, bodyType),
+          },
         };
         updateTabResponse(tabId, errorResponse);
       });
@@ -532,6 +579,7 @@ export default function RequestEditor({
     isCancelledRef.current = true;
     cancelCurrentRequest();
     setIsSending(false);
+    const request = getCurrentRequest();
     const cancelResponse = {
       status: 0,
       statusText: "已取消",
@@ -541,6 +589,15 @@ export default function RequestEditor({
       time: 0,
       timestamp: Date.now(),
       logs: [],
+      request: {
+        method: request.method,
+        url: request.url,
+        headers: request.headers.reduce(
+          (acc, h) => ({ ...acc, [h.key]: h.value }),
+          {} as Record<string, string>,
+        ),
+        body: extractBodyString(request.body, bodyType),
+      },
     };
     updateTabResponse(tabId, cancelResponse);
   }, [setIsSending, updateTabResponse, tabId]);
