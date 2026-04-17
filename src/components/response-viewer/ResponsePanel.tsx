@@ -1,10 +1,15 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useDevToolsStore } from '../../stores';
-import type { ResponseData, StreamConfig, StreamExtractionRule, SSEEvent } from '../../types';
-import JsonTreePreview from './JsonTreePreview';
-import ResponseBodyViewer from './ResponseBodyViewer';
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useDevToolsStore } from "../../stores";
+import type {
+  ResponseData,
+  StreamConfig,
+  StreamExtractionRule,
+  SSEEvent,
+} from "../../types";
+import JsonTreePreview from "./JsonTreePreview";
+import ResponseBodyViewer from "./ResponseBodyViewer";
 
-type Tab = 'body' | 'headers' | 'console';
+type Tab = "body" | "headers" | "console";
 
 interface ResponsePanelProps {
   streamConfig?: StreamConfig;
@@ -20,9 +25,9 @@ function extractValue(data: any, path: string): any {
 
   // 处理 $ 前缀
   let normalizedPath = path.trim();
-  if (normalizedPath.startsWith('$.')) {
+  if (normalizedPath.startsWith("$.")) {
     normalizedPath = normalizedPath.slice(2);
-  } else if (normalizedPath.startsWith('$')) {
+  } else if (normalizedPath.startsWith("$")) {
     normalizedPath = normalizedPath.slice(1);
   }
 
@@ -58,7 +63,7 @@ function parseEventData(event: SSEEvent): any {
  */
 function StreamBodyContent({
   events,
-  streamConfig
+  streamConfig,
 }: {
   events: SSEEvent[];
   streamConfig: StreamConfig;
@@ -66,7 +71,9 @@ function StreamBodyContent({
   const containerRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   // 存储每个规则的展开/折叠状态
-  const [collapsedRules, setCollapsedRules] = useState<Record<number, boolean>>({});
+  const [collapsedRules, setCollapsedRules] = useState<Record<number, boolean>>(
+    {},
+  );
 
   // 提取并拼接内容
   const extractedContent = React.useMemo(() => {
@@ -74,29 +81,39 @@ function StreamBodyContent({
       return null;
     }
 
-    const results: { alias: string; values: any[]; concatenatedValue: string | undefined }[] = [];
+    const results: {
+      alias: string;
+      values: any[];
+      concatenatedValue: string | undefined;
+    }[] = [];
 
     for (const rule of streamConfig.extractionRules) {
       const values: any[] = [];
 
       for (const event of events) {
         const parsed = parseEventData(event);
-        if (parsed && typeof parsed === 'object') {
+        if (parsed && typeof parsed === "object") {
           const value = extractValue(parsed, rule.path);
           // 过滤掉 undefined、null、空字符串和纯空白字符串
-          if (value !== undefined && value !== null && String(value).trim() !== '') {
+          if (
+            value !== undefined &&
+            value !== null &&
+            String(value).trim() !== ""
+          ) {
             values.push(value);
           }
         }
       }
 
       // 最终过滤：确保所有值都是非空字符串
-      const validValues = values.map(v => String(v).trim()).filter(v => v !== '');
-      
+      const validValues = values
+        .map((v) => String(v).trim())
+        .filter((v) => v !== "");
+
       results.push({
         alias: rule.alias || rule.path,
         values: validValues,
-        concatenatedValue: validValues.join('')
+        concatenatedValue: validValues.join(""),
       });
     }
 
@@ -112,16 +129,19 @@ function StreamBodyContent({
 
   // 切换指定规则的展开/折叠状态
   const toggleRule = (index: number) => {
-    setCollapsedRules(prev => {
+    setCollapsedRules((prev) => {
       const currentState = prev[index];
       // 如果是 index 0，默认是展开的（false），所以 toggle 后应该变成 true（折叠）
       // 如果是其他 index，默认是折叠的（true），所以 toggle 后应该变成 false（展开）
-      const newState = currentState === undefined 
-        ? (index === 0 ? true : false) 
-        : !currentState;
+      const newState =
+        currentState === undefined
+          ? index === 0
+            ? true
+            : false
+          : !currentState;
       return {
         ...prev,
-        [index]: newState
+        [index]: newState,
       };
     });
   };
@@ -148,67 +168,62 @@ function StreamBodyContent({
         <span className="text-xs text-gray-500 dark:text-gray-400">
           已接收 {events.length} 个事件
         </span>
-        <label className="flex items-center gap-1 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={autoScroll}
-            onChange={(e) => setAutoScroll(e.target.checked)}
-            className="w-3 h-3 accent-primary-500"
-          />
-          <span className="text-xs text-gray-500 dark:text-gray-400">自动滚动</span>
-        </label>
       </div>
-      <div ref={containerRef} className="flex-1 overflow-auto p-3 space-y-2">
-        {extractedContent.map((field, index) => {
-          const isCollapsed = isRuleCollapsed(index);
-          return (
-            <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              {/* 规则标题栏 - 可点击折叠/展开 */}
-              <div
-                className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                onClick={() => toggleRule(index)}
-              >
-                <div className="flex items-center gap-2">
-                  <svg
-                    className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                  <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
-                    {field.alias}
-                  </span>
-                </div>
-                <span className="text-xs text-gray-400 dark:text-gray-500">
-                  {field.values.length} 个值 {isCollapsed ? '(已折叠)' : ''}
+      <div ref={containerRef} className="flex-1 overflow-auto p-2 space-y-2">
+        {extractedContent.map((result, index) => (
+          <div
+            key={index}
+            className="border border-gray-200 dark:border-gray-700 rounded"
+          >
+            <div
+              className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-750"
+              onClick={() => toggleRule(index)}
+            >
+              <div className="flex items-center gap-2">
+                <svg
+                  className={`w-4 h-4 text-gray-500 transition-transform ${
+                    isRuleCollapsed(index) ? "" : "rotate-90"
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {result.alias}
                 </span>
               </div>
-              {/* 规则内容 - 折叠时隐藏 */}
-              {!isCollapsed && field.concatenatedValue && (
-                <div className="px-3 pb-3">
-                  <div className="bg-white dark:bg-gray-900 rounded p-2 border border-gray-200 dark:border-gray-700">
-                    <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono max-h-60 overflow-auto">
-                      {field.concatenatedValue}
-                    </pre>
-                  </div>
-                </div>
-              )}
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {result.values.length} 个值
+              </span>
             </div>
-          );
-        })}
+            {!isRuleCollapsed(index) && (
+              <div className="p-2 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                <div className="text-xs font-mono text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-all">
+                  {result.concatenatedValue || "（空）"}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-/**
- * 原始 SSE 事件列表显示
- */
+// SSE 事件列表组件
 function SSEEventList({ events }: { events: SSEEvent[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [expandedEvents, setExpandedEvents] = useState<Record<number, boolean>>(
+    {},
+  );
 
   // 自动滚动到底部
   useEffect(() => {
@@ -217,41 +232,99 @@ function SSEEventList({ events }: { events: SSEEvent[] }) {
     }
   }, [events, autoScroll]);
 
+  // 切换事件展开/折叠状态
+  const toggleEvent = (index: number) => {
+    setExpandedEvents((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  // 检查事件是否展开（默认展开最后 5 个事件）
+  const isEventExpanded = (index: number) => {
+    if (expandedEvents[index] !== undefined) {
+      return expandedEvents[index];
+    }
+    // 默认展开最后 5 个事件
+    return index >= Math.max(0, events.length - 5);
+  };
+
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
         <span className="text-xs text-gray-500 dark:text-gray-400">
           {events.length} 个事件
         </span>
-        <label className="flex items-center gap-1 cursor-pointer">
+        <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
             checked={autoScroll}
             onChange={(e) => setAutoScroll(e.target.checked)}
             className="w-3 h-3 accent-primary-500"
           />
-          <span className="text-xs text-gray-500 dark:text-gray-400">自动滚动</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            自动滚动
+          </span>
         </label>
       </div>
-      <div ref={containerRef} className="flex-1 overflow-auto p-2 space-y-1 font-mono text-xs">
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-auto p-2 space-y-1 font-mono text-xs"
+      >
         {events.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-600">
             <p className="text-sm">暂无事件</p>
           </div>
         ) : (
           events.map((event, index) => {
-            const timestamp = new Date(event.timestamp || Date.now()).toLocaleTimeString();
+            const timestamp = new Date(
+              event.timestamp || Date.now(),
+            ).toLocaleTimeString();
+            const isExpanded = isEventExpanded(index);
+
             return (
-              <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded p-2 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-2 text-primary-500 dark:text-primary-400 font-bold">
+              <div
+                key={index}
+                className="bg-gray-50 dark:bg-gray-800 rounded p-2 border border-gray-200 dark:border-gray-700"
+              >
+                <div
+                  className="flex items-center gap-2 text-primary-500 dark:text-primary-400 font-bold cursor-pointer"
+                  onClick={() => toggleEvent(index)}
+                >
+                  <svg
+                    className={`w-3.5 h-3.5 text-gray-500 transition-transform ${
+                      isExpanded ? "rotate-90" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
                   <span>[{timestamp}]</span>
-                  <span>Event {index + 1}: {event.event || 'message'}</span>
+                  <span>
+                    Event {index + 1}: {event.event || "message"}
+                  </span>
                 </div>
-                <div className="text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">
-                  Data: {event.data || ''}
-                </div>
-                {event.id && (
-                  <div className="text-gray-500 dark:text-gray-500">ID: {event.id}</div>
+                {isExpanded && (
+                  <div className="text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap break-all pl-5">
+                    <div>Data: {event.data || ""}</div>
+                    {event.id && (
+                      <div className="text-gray-500 dark:text-gray-500">
+                        ID: {event.id}
+                      </div>
+                    )}
+                    {event.retry && (
+                      <div className="text-gray-500 dark:text-gray-500">
+                        Retry: {event.retry}ms
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             );
@@ -262,24 +335,32 @@ function SSEEventList({ events }: { events: SSEEvent[] }) {
   );
 }
 
-// Console 组件
+// Console 组件 - 重构为请求/响应分离的可折叠面板
 function InlineConsole() {
   const { getActiveTab } = useDevToolsStore();
   const activeTab = getActiveTab();
   const currentResponse = activeTab?.response;
-  const [logs, setLogs] = useState<string[]>([]);
   const [autoScroll, setAutoScroll] = useState(true);
 
   // 跟踪已处理的事件数量，用于增量更新
   const processedEventsCountRef = useRef(0);
   // 跟踪当前请求的时间戳，用于检测新请求
   const currentRequestTimestampRef = useRef<number | null>(null);
-  // 存储 curl 命令
-  const curlCommandRef = useRef<string | null>(null);
+
+  // 请求报文状态
+  const [requestPayload, setRequestPayload] = useState<string>("");
+  const [isRequestExpanded, setIsRequestExpanded] = useState(true);
+
+  // 响应报文状态
+  const [responsePayload, setResponsePayload] = useState<string>("");
+  const [isResponseExpanded, setIsResponseExpanded] = useState(true);
+
+  // SSE 事件日志状态
+  const [sseLogs, setSseLogs] = useState<string[]>([]);
 
   // 生成 curl 命令
   const generateCurlCommand = useCallback(() => {
-    if (!currentResponse?.request) return null;
+    if (!currentResponse?.request) return "";
 
     const { method, url, headers, body } = currentResponse.request;
     let curl = `curl -X ${method} '${url}'`;
@@ -299,38 +380,58 @@ function InlineConsole() {
     return curl;
   }, [currentResponse]);
 
+  // 复制请求报文
+  const copyRequestPayload = () => {
+    const curlCommand = generateCurlCommand();
+    if (curlCommand) {
+      navigator.clipboard.writeText(curlCommand);
+    }
+  };
+
+  // 复制响应报文
+  const copyResponsePayload = () => {
+    if (responsePayload) {
+      navigator.clipboard.writeText(responsePayload);
+    }
+  };
+
   // 实时追加 SSE 事件日志
   useEffect(() => {
     if (!currentResponse) {
       // 响应清空时，重置所有状态
-      setLogs([]);
+      setRequestPayload("");
+      setResponsePayload("");
+      setSseLogs([]);
       processedEventsCountRef.current = 0;
       currentRequestTimestampRef.current = null;
-      curlCommandRef.current = null;
+      setIsRequestExpanded(true);
+      setIsResponseExpanded(true);
       return;
     }
 
     // 检测是否是新请求（通过时间戳判断）
-    const isNewRequest = currentRequestTimestampRef.current !== currentResponse.timestamp;
+    const isNewRequest =
+      currentRequestTimestampRef.current !== currentResponse.timestamp;
 
     if (isNewRequest) {
-      // 新请求开始，重置日志
+      // 新请求开始，重置所有状态
       processedEventsCountRef.current = 0;
       currentRequestTimestampRef.current = currentResponse.timestamp;
-      curlCommandRef.current = generateCurlCommand();
+      setSseLogs([]);
+      setIsResponseExpanded(true);
 
-      // 初始化日志（添加 curl 命令）
-      const initialLogs: string[] = [];
-      if (curlCommandRef.current) {
-        initialLogs.push('=== 请求原始报文 (curl) ===');
-        initialLogs.push(curlCommandRef.current);
-        initialLogs.push('');
+      // 生成请求报文
+      const curlCommand = generateCurlCommand();
+      if (curlCommand) {
+        setRequestPayload(curlCommand);
+      } else {
+        const { method, url } = currentResponse.request;
+        setRequestPayload(`${method} ${url}`);
       }
-      setLogs(initialLogs);
     }
 
     // 处理 SSE 流式响应
-    if (currentResponse?.body?.type === 'sse') {
+    if (currentResponse?.body?.type === "sse") {
       const sseEvents = currentResponse.body.content as any[];
       const totalEvents = sseEvents.length;
       const processedCount = processedEventsCountRef.current;
@@ -341,9 +442,11 @@ function InlineConsole() {
 
         for (let i = processedCount; i < totalEvents; i++) {
           const event = sseEvents[i];
-          const timestamp = new Date(event.timestamp || Date.now()).toLocaleTimeString();
-          const logMessage = `[${timestamp}] Event ${i + 1}: ${event.event || 'message'}`;
-          const dataContent = event.data || '';
+          const timestamp = new Date(
+            event.timestamp || Date.now(),
+          ).toLocaleTimeString();
+          const logMessage = `[${timestamp}] Event ${i + 1}: ${event.event || "message"}`;
+          const dataContent = event.data || "";
 
           newLogs.push(logMessage);
           newLogs.push(`  Data: ${dataContent}`);
@@ -357,42 +460,35 @@ function InlineConsole() {
 
         // 追加新日志
         if (newLogs.length > 0) {
-          setLogs(prev => [...prev, ...newLogs]);
+          setSseLogs((prev) => [...prev, ...newLogs]);
         }
 
         processedEventsCountRef.current = totalEvents;
       }
     } else if (currentResponse?.body) {
-      // 非 SSE 响应，显示响应摘要和原始报文
+      // 非 SSE 响应，生成响应报文
       if (isNewRequest) {
-        const timestamp = new Date().toLocaleTimeString();
-        const responseLogs: string[] = [
-          '',
-          `=== 响应原始报文 ===`,
-          `[${timestamp}] 响应已接收`,
-          `状态码: ${currentResponse.status} ${currentResponse.statusText}`,
-          `耗时: ${currentResponse.time}ms`,
-          `大小: ${(currentResponse.size / 1024).toFixed(2)} KB`,
-          '',
-        ];
+        const statusLine = `状态码：${currentResponse.status} ${currentResponse.statusText}`;
+        const infoLine = `耗时：${currentResponse.time}ms | 大小：${(currentResponse.size / 1024).toFixed(2)} KB`;
 
+        let content = "";
         // 根据响应类型格式化内容
-        if (currentResponse.body.type === 'json') {
+        if (currentResponse.body.type === "json") {
           try {
-            const jsonContent = typeof currentResponse.body.content === 'string'
-              ? currentResponse.body.content
-              : JSON.stringify(currentResponse.body.content, null, 2);
-            responseLogs.push(jsonContent);
+            content =
+              typeof currentResponse.body.content === "string"
+                ? currentResponse.body.content
+                : JSON.stringify(currentResponse.body.content, null, 2);
           } catch {
-            responseLogs.push(String(currentResponse.body.content));
+            content = String(currentResponse.body.content);
           }
-        } else if (currentResponse.body.type === 'text') {
-          responseLogs.push(String(currentResponse.body.content));
+        } else if (currentResponse.body.type === "text") {
+          content = String(currentResponse.body.content);
         } else {
-          responseLogs.push(`[${currentResponse.body.type} 类型响应]`);
+          content = `[${currentResponse.body.type} 类型响应]`;
         }
 
-        setLogs(prev => [...prev, ...responseLogs]);
+        setResponsePayload(`${statusLine}\n${infoLine}\n\n${content}`);
       }
     }
   }, [currentResponse, generateCurlCommand]);
@@ -404,41 +500,20 @@ function InlineConsole() {
     if (autoScroll && consoleEndRef.current) {
       consoleEndRef.current.scrollTop = consoleEndRef.current.scrollHeight;
     }
-  }, [logs, autoScroll]);
-
-  // 复制 curl 命令
-  const copyCurl = () => {
-    const curlCommand = curlCommandRef.current || generateCurlCommand();
-    if (curlCommand) {
-      navigator.clipboard.writeText(curlCommand);
-    }
-  };
-
-  // 清空日志
-  const clearLogs = () => {
-    setLogs([]);
-    processedEventsCountRef.current = 0;
-    curlCommandRef.current = null;
-  };
+  }, [sseLogs, autoScroll]);
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-950">
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-2">
-          <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">控制台</span>
+          <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+            控制台
+          </span>
           <span className="text-gray-400 dark:text-gray-600 text-xs">
-            {logs.length} 条日志
+            {sseLogs.length} 个事件
           </span>
         </div>
         <div className="flex items-center gap-2">
-          {currentResponse?.request && (
-            <button
-              onClick={copyCurl}
-              className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 text-xs transition-colors"
-            >
-              复制 curl
-            </button>
-          )}
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -446,10 +521,17 @@ function InlineConsole() {
               onChange={(e) => setAutoScroll(e.target.checked)}
               className="accent-primary-500 w-4 h-4"
             />
-            <span className="text-gray-500 dark:text-gray-500 text-xs">自动滚动</span>
+            <span className="text-gray-500 dark:text-gray-500 text-xs">
+              自动滚动
+            </span>
           </label>
           <button
-            onClick={clearLogs}
+            onClick={() => {
+              setSseLogs([]);
+              setRequestPayload("");
+              setResponsePayload("");
+              processedEventsCountRef.current = 0;
+            }}
             className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 text-xs transition-colors"
           >
             清空
@@ -457,37 +539,143 @@ function InlineConsole() {
         </div>
       </div>
 
-      <div
-        ref={consoleEndRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden p-3 bg-white dark:bg-gray-900"
-      >
-        {logs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-600">
-            <p className="text-sm">暂无控制台输出</p>
+      <div ref={consoleEndRef} className="flex-1 overflow-y-auto p-3 space-y-3">
+        {/* 请求报面板 */}
+        {requestPayload && (
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsRequestExpanded(!isRequestExpanded)}
+                  className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                >
+                  <svg
+                    className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform ${
+                      isRequestExpanded ? "rotate-90" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  请求报文
+                </span>
+              </div>
+              <button
+                onClick={copyRequestPayload}
+                className="text-xs text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors flex items-center gap-1"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                复制
+              </button>
+            </div>
+            {isRequestExpanded && (
+              <div className="p-3 bg-white dark:bg-gray-900">
+                <pre className="text-xs font-mono text-green-600 dark:text-green-400 whitespace-pre-wrap break-all">
+                  {requestPayload}
+                </pre>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="space-y-2 w-full max-w-full">
-            {logs.map((log, index) => {
-              const isEventStart = log.startsWith('[');
-              const isDataLine = log.startsWith('  Data:');
-              const isIdLine = log.startsWith('  ID:');
-              const isRetryLine = log.startsWith('  Retry:');
-              const isCurlHeader = log.startsWith('===');
-              const isCurlCommand = log.startsWith('curl');
+        )}
+
+        {/* 响应报文面板 */}
+        {responsePayload && (
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsResponseExpanded(!isResponseExpanded)}
+                  className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                >
+                  <svg
+                    className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform ${
+                      isResponseExpanded ? "rotate-90" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  响应报文
+                </span>
+              </div>
+              <button
+                onClick={copyResponsePayload}
+                className="text-xs text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors flex items-center gap-1"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                复制
+              </button>
+            </div>
+            {isResponseExpanded && (
+              <div className="p-3 bg-white dark:bg-gray-900">
+                <pre className="text-xs font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all">
+                  {responsePayload}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SSE 事件日志 */}
+        {sseLogs.length > 0 && (
+          <div className="space-y-1">
+            {sseLogs.map((log, index) => {
+              const isEventStart = log.startsWith("[");
+              const isDataLine = log.startsWith("  Data:");
+              const isIdLine = log.startsWith("  ID:");
+              const isRetryLine = log.startsWith("  Retry:");
 
               return (
                 <div
                   key={index}
-                  className={`font-mono text-xs whitespace-pre-wrap break-words w-full ${
-                    isCurlHeader
-                      ? 'text-yellow-600 dark:text-yellow-400 font-bold mt-2'
-                      : isCurlCommand
-                      ? 'text-green-600 dark:text-green-400'
-                      : isEventStart
-                      ? 'text-primary-500 dark:text-primary-400 font-bold'
+                  className={`font-mono text-xs whitespace-pre-wrap break-words ${
+                    isEventStart
+                      ? "text-primary-500 dark:text-primary-400 font-bold"
                       : isDataLine
-                      ? 'text-gray-700 dark:text-gray-300'
-                      : 'text-gray-500 dark:text-gray-500'
+                        ? "text-gray-700 dark:text-gray-300"
+                        : "text-gray-500 dark:text-gray-500"
                   }`}
                 >
                   {log}
@@ -496,32 +684,59 @@ function InlineConsole() {
             })}
           </div>
         )}
+
+        {/* 空状态提示 */}
+        {!requestPayload && !responsePayload && sseLogs.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-48 text-gray-400 dark:text-gray-600">
+            <svg
+              className="w-12 h-12 mb-3 opacity-30"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <p className="text-sm">暂无控制台输出</p>
+            <p className="text-xs mt-1">发送请求后在此查看请求和响应报文</p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export default function ResponsePanel({ streamConfig, onStreamConfigChange }: ResponsePanelProps) {
+export default function ResponsePanel({
+  streamConfig,
+  onStreamConfigChange,
+}: ResponsePanelProps) {
   const { getActiveTab } = useDevToolsStore();
   const activeTab = getActiveTab();
   const currentResponse = activeTab?.response;
-  const [activeTabState, setActiveTabState] = useState<Tab>('body');
+  const [activeTabState, setActiveTabState] = useState<Tab>("body");
 
   // Default stream config if not provided
   const currentStreamConfig: StreamConfig = streamConfig || {
     enabled: false,
     extractionRules: [],
-    displayMode: 'concatenated',
+    displayMode: "concatenated",
   };
 
   // 判断是否为 SSE 流式响应
-  const isSSEResponse = currentResponse?.body?.type === 'sse';
-  const sseEvents: SSEEvent[] = isSSEResponse && Array.isArray(currentResponse.body.content)
-    ? currentResponse.body.content
-    : [];
+  const isSSEResponse = currentResponse?.body?.type === "sse";
+  const sseEvents: SSEEvent[] =
+    isSSEResponse && Array.isArray(currentResponse.body.content)
+      ? currentResponse.body.content
+      : [];
 
   // 判断是否启用了流式提取
-  const hasStreamExtraction = currentStreamConfig.enabled && currentStreamConfig.extractionRules.length > 0;
+  const hasStreamExtraction =
+    currentStreamConfig.enabled &&
+    currentStreamConfig.extractionRules.length > 0;
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -531,10 +746,10 @@ export default function ResponsePanel({ streamConfig, onStreamConfigChange }: Re
           <span
             className={`text-sm font-medium ${
               currentResponse.status >= 200 && currentResponse.status < 300
-                ? 'text-green-600 dark:text-success-400'
+                ? "text-green-600 dark:text-success-400"
                 : currentResponse.status >= 400 && currentResponse.status < 500
-                ? 'text-yellow-600 dark:text-warning-400'
-                : 'text-red-600 dark:text-danger-400'
+                  ? "text-yellow-600 dark:text-warning-400"
+                  : "text-red-600 dark:text-danger-400"
             }`}
           >
             {currentResponse.status} {currentResponse.statusText}
@@ -556,31 +771,34 @@ export default function ResponsePanel({ streamConfig, onStreamConfigChange }: Re
       {/* 标签页 - 固定显示 Body、Headers、Console */}
       <div className="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
         <button
-          onClick={() => setActiveTabState('body')}
+          onClick={() => setActiveTabState("body")}
           className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTabState === 'body'
-              ? 'text-primary-600 dark:text-white border-b-2 border-primary-500 bg-white dark:bg-gray-800'
-              : 'text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-400'
+            activeTabState === "body"
+              ? "text-primary-600 dark:text-white border-b-2 border-primary-500 bg-white dark:bg-gray-800"
+              : "text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-400"
           }`}
         >
           Body
         </button>
         <button
-          onClick={() => setActiveTabState('headers')}
+          onClick={() => setActiveTabState("headers")}
           className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTabState === 'headers'
-              ? 'text-primary-600 dark:text-white border-b-2 border-primary-500 bg-white dark:bg-gray-800'
-              : 'text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-400'
+            activeTabState === "headers"
+              ? "text-primary-600 dark:text-white border-b-2 border-primary-500 bg-white dark:bg-gray-800"
+              : "text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-400"
           }`}
         >
-          Headers {currentResponse ? `(${Object.keys(currentResponse.headers).length})` : ''}
+          Headers{" "}
+          {currentResponse
+            ? `(${Object.keys(currentResponse.headers).length})`
+            : ""}
         </button>
         <button
-          onClick={() => setActiveTabState('console')}
+          onClick={() => setActiveTabState("console")}
           className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTabState === 'console'
-              ? 'text-primary-600 dark:text-white border-b-2 border-primary-500 bg-white dark:bg-gray-800'
-              : 'text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-400'
+            activeTabState === "console"
+              ? "text-primary-600 dark:text-white border-b-2 border-primary-500 bg-white dark:bg-gray-800"
+              : "text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-400"
           }`}
         >
           Console
@@ -589,12 +807,13 @@ export default function ResponsePanel({ streamConfig, onStreamConfigChange }: Re
 
       {/* 内容区域 */}
       <div className="flex-1 overflow-hidden bg-white dark:bg-gray-950">
-        {activeTabState === 'body' && (
+        {activeTabState === "body" && (
           <div className="h-full overflow-auto">
             {currentResponse ? (
               <>
                 {/* JSON/文本响应 - 使用带格式化选项的查看器 */}
-                {(currentResponse.body.type === 'json' || currentResponse.body.type === 'text') && (
+                {(currentResponse.body.type === "json" ||
+                  currentResponse.body.type === "text") && (
                   <ResponseBodyViewer
                     content={currentResponse.body.content}
                     contentType={currentResponse.body.type}
@@ -603,21 +822,33 @@ export default function ResponsePanel({ streamConfig, onStreamConfigChange }: Re
                 )}
 
                 {/* SSE 流式响应 */}
-                {currentResponse.body.type === 'sse' && (
-                  hasStreamExtraction ? (
+                {currentResponse.body.type === "sse" &&
+                  (hasStreamExtraction ? (
                     // 启用流式提取：显示提取后的拼接内容
-                    <StreamBodyContent events={sseEvents} streamConfig={currentStreamConfig} />
+                    <StreamBodyContent
+                      events={sseEvents}
+                      streamConfig={currentStreamConfig}
+                    />
                   ) : (
                     // 未启用流式提取：显示原始事件列表（类似 Console）
                     <SSEEventList events={sseEvents} />
-                  )
-                )}
+                  ))}
               </>
             ) : (
               /* 无响应时显示空白占位 */
               <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500">
-                <svg className="w-16 h-16 mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg
+                  className="w-16 h-16 mb-4 opacity-30"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
                 <p className="text-lg">暂无响应</p>
                 <p className="text-sm mt-1">发送请求后在此查看结果</p>
@@ -626,33 +857,52 @@ export default function ResponsePanel({ streamConfig, onStreamConfigChange }: Re
           </div>
         )}
 
-        {activeTabState === 'headers' && (
+        {activeTabState === "headers" && (
           <div className="h-full overflow-auto p-4">
             {currentResponse ? (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-gray-500 dark:text-gray-500">
-                    <th className="pb-2 border-b border-gray-200 dark:border-gray-800">Key</th>
-                    <th className="pb-2 border-b border-gray-200 dark:border-gray-800">Value</th>
+                    <th className="pb-2 border-b border-gray-200 dark:border-gray-800">
+                      Key
+                    </th>
+                    <th className="pb-2 border-b border-gray-200 dark:border-gray-800">
+                      Value
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(currentResponse.headers).map(([key, value]) => (
-                    <tr key={key} className="text-gray-700 dark:text-gray-300">
-                      <td className="py-2 border-b border-gray-200 dark:border-gray-800 font-mono">
-                        {key}
-                      </td>
-                      <td className="py-2 border-b border-gray-200 dark:border-gray-800 font-mono">
-                        {String(value)}
-                      </td>
-                    </tr>
-                  ))}
+                  {Object.entries(currentResponse.headers).map(
+                    ([key, value]) => (
+                      <tr
+                        key={key}
+                        className="text-gray-700 dark:text-gray-300"
+                      >
+                        <td className="py-2 border-b border-gray-200 dark:border-gray-800 font-mono">
+                          {key}
+                        </td>
+                        <td className="py-2 border-b border-gray-200 dark:border-gray-800 font-mono">
+                          {String(value)}
+                        </td>
+                      </tr>
+                    ),
+                  )}
                 </tbody>
               </table>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500">
-                <svg className="w-16 h-16 mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                <svg
+                  className="w-16 h-16 mb-4 opacity-30"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                  />
                 </svg>
                 <p className="text-lg">暂无 Headers</p>
                 <p className="text-sm mt-1">发送请求后在此查看响应头</p>
@@ -661,7 +911,7 @@ export default function ResponsePanel({ streamConfig, onStreamConfigChange }: Re
           </div>
         )}
 
-        {activeTabState === 'console' && (
+        {activeTabState === "console" && (
           <div className="h-full overflow-hidden">
             <InlineConsole />
           </div>
