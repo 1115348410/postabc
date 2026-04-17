@@ -1,7 +1,7 @@
-import Dexie, { Table } from 'dexie';
-import type { RequestConfig, ResponseData } from '../types';
-import type { Environment } from '../types/environment';
-import type { RequestItem, RequestCollection } from '../types/collection';
+import Dexie, { Table } from "dexie";
+import type { RequestConfig, ResponseData } from "../types";
+import type { Environment } from "../types/environment";
+import type { RequestItem, RequestCollection } from "../types/collection";
 
 export interface RequestHistoryItem {
   id?: number;
@@ -24,7 +24,7 @@ export interface EnvironmentVariable {
   key: string;
   value: string;
   enabled: boolean;
-  environment: 'global' | 'workspace';
+  environment: "global" | "workspace";
 }
 
 // 新增：文件夹
@@ -96,17 +96,17 @@ class PostABCDatabase extends Dexie {
   requestTree!: Table<RequestStorageItem>;
 
   constructor() {
-    super('PostABCDatabase');
+    super("PostABCDatabase");
     this.version(4).stores({
-      requestHistory: '++id, timestamp, collectionId',
-      collections: '++id, name, timestamp',
-      environmentVariables: '++id, key, environment',
-      folders: '++id, name, parentId, createdAt',
-      savedRequests: '++id, name, folderId, createdAt, updatedAt',
-      serverConfig: '++id, enabled',
-      environments: '++id, uuid, name',
-      collectionTree: '++id, uuid, parentId',
-      requestTree: '++id, uuid, collectionId',
+      requestHistory: "++id, timestamp, collectionId",
+      collections: "++id, name, timestamp",
+      environmentVariables: "++id, key, environment",
+      folders: "++id, name, parentId, createdAt",
+      savedRequests: "++id, name, folderId, createdAt, updatedAt",
+      serverConfig: "++id, enabled",
+      environments: "++id, uuid, name",
+      collectionTree: "++id, uuid, parentId",
+      requestTree: "++id, uuid, collectionId",
     });
   }
 }
@@ -118,9 +118,15 @@ export default db;
 export const storageAPI = {
   // Request History
   async addRequestHistory(
-    request: RequestConfig,
+    request: RequestConfig | undefined,
     response?: ResponseData,
   ): Promise<number> {
+    if (!request) {
+      console.warn(
+        "[PostABC] addRequestHistory: request is undefined, skipping save",
+      );
+      return -1;
+    }
     return await db.requestHistory.add({
       request,
       response,
@@ -130,7 +136,7 @@ export const storageAPI = {
 
   async getRequestHistory(limit = 50): Promise<RequestHistoryItem[]> {
     return await db.requestHistory
-      .orderBy('timestamp')
+      .orderBy("timestamp")
       .reverse()
       .limit(limit)
       .toArray();
@@ -154,10 +160,13 @@ export const storageAPI = {
   },
 
   async getCollections(): Promise<CollectionItem[]> {
-    return await db.collections.orderBy('timestamp').reverse().toArray();
+    return await db.collections.orderBy("timestamp").reverse().toArray();
   },
 
-  async updateCollection(id: number, data: Partial<CollectionItem>): Promise<void> {
+  async updateCollection(
+    id: number,
+    data: Partial<CollectionItem>,
+  ): Promise<void> {
     await db.collections.update(id, data);
   },
 
@@ -183,7 +192,9 @@ export const storageAPI = {
   ): Promise<void> {
     const collection = await db.collections.get(collectionId);
     if (collection) {
-      const newRequests = collection.requests.filter((_, i) => i !== requestIndex);
+      const newRequests = collection.requests.filter(
+        (_, i) => i !== requestIndex,
+      );
       await db.collections.update(collectionId, { requests: newRequests });
     }
   },
@@ -192,7 +203,7 @@ export const storageAPI = {
   async setEnvironmentVariable(
     key: string,
     value: string,
-    environment: 'global' | 'workspace' = 'global',
+    environment: "global" | "workspace" = "global",
     enabled = true,
   ): Promise<number> {
     // Check if variable already exists
@@ -214,11 +225,9 @@ export const storageAPI = {
   },
 
   async getEnvironmentVariables(
-    environment: 'global' | 'workspace' = 'global',
+    environment: "global" | "workspace" = "global",
   ): Promise<EnvironmentVariable[]> {
-    return await db.environmentVariables
-      .where({ environment })
-      .toArray();
+    return await db.environmentVariables.where({ environment }).toArray();
   },
 
   async updateEnvironmentVariable(
@@ -233,12 +242,12 @@ export const storageAPI = {
   },
 
   async getActiveEnvironmentVariables(
-    environment: 'global' | 'workspace' = 'global',
+    environment: "global" | "workspace" = "global",
   ): Promise<Record<string, string>> {
     // 使用 where('environment') 查询，然后在内存中过滤 enabled
     // 因为 Dexie 复合查询需要复合索引
     const allVariables = await db.environmentVariables
-      .where('environment')
+      .where("environment")
       .equals(environment)
       .toArray();
 
@@ -249,7 +258,13 @@ export const storageAPI = {
         result[v.key] = v.value;
       });
 
-    console.log('[Storage] 环境变量查询结果:', result, '总计:', Object.keys(result).length, '个');
+    console.log(
+      "[Storage] 环境变量查询结果:",
+      result,
+      "总计:",
+      Object.keys(result).length,
+      "个",
+    );
     return result;
   },
 
@@ -263,7 +278,7 @@ export const storageAPI = {
   },
 
   async getFolders(): Promise<Folder[]> {
-    return await db.folders.orderBy('createdAt').toArray();
+    return await db.folders.orderBy("createdAt").toArray();
   },
 
   async updateFolder(id: number, data: Partial<Folder>): Promise<void> {
@@ -272,7 +287,7 @@ export const storageAPI = {
 
   async deleteFolder(id: number): Promise<void> {
     // 删除文件夹及其下的所有请求
-    await db.savedRequests.where('folderId').equals(id).delete();
+    await db.savedRequests.where("folderId").equals(id).delete();
     await db.folders.delete(id);
   },
 
@@ -293,10 +308,13 @@ export const storageAPI = {
   },
 
   async getSavedRequests(): Promise<SavedRequest[]> {
-    return await db.savedRequests.orderBy('updatedAt').reverse().toArray();
+    return await db.savedRequests.orderBy("updatedAt").reverse().toArray();
   },
 
-  async updateSavedRequest(id: number, data: Partial<SavedRequest>): Promise<void> {
+  async updateSavedRequest(
+    id: number,
+    data: Partial<SavedRequest>,
+  ): Promise<void> {
     await db.savedRequests.update(id, { ...data, updatedAt: Date.now() });
   },
 
@@ -371,7 +389,7 @@ export const storageAPI = {
    */
   async getEnvironments(): Promise<Environment[]> {
     const items = await db.environments.toArray();
-    return items.map(item => ({
+    return items.map((item) => ({
       id: item.uuid,
       name: item.name,
       variables: JSON.parse(item.variablesJson),
@@ -401,11 +419,11 @@ export const storageAPI = {
    */
   async getRootCollections(): Promise<RequestCollection[]> {
     const items = await db.collectionTree
-      .where('parentId')
+      .where("parentId")
       .equals(null as unknown as string)
       .toArray();
 
-    return items.map(item => ({
+    return items.map((item) => ({
       uuid: item.uuid,
       name: item.name,
       parentId: item.parentId || null,
@@ -435,13 +453,15 @@ export const storageAPI = {
   /**
    * 获取集合下的请求列表
    */
-  async getRequestsByCollectionId(collectionId: string): Promise<RequestItem[]> {
+  async getRequestsByCollectionId(
+    collectionId: string,
+  ): Promise<RequestItem[]> {
     const items = await db.requestTree
-      .where('collectionId')
+      .where("collectionId")
       .equals(collectionId)
       .toArray();
 
-    return items.map(item => ({
+    return items.map((item) => ({
       id: item.uuid,
       uuid: item.uuid,
       name: item.name,
