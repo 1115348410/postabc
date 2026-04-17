@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import type { RequestTab } from '../types';
+import React, { useState, useRef, useEffect } from "react";
+import type { RequestTab } from "../types";
 
 interface RequestTabBarProps {
   tabs: RequestTab[];
@@ -19,7 +19,7 @@ export default function RequestTabBar({
   onAddTab,
 }: RequestTabBarProps) {
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
+  const [editingName, setEditingName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -42,15 +42,45 @@ export default function RequestTabBar({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleRenameSubmit();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setEditingTabId(null);
     }
   };
 
   return (
     <div className="flex items-center bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
+      {/* Add button - moved to the left for better visibility */}
+      <button
+        onClick={onAddTab}
+        className="
+          flex items-center justify-center gap-1.5
+          px-3 h-8 mx-1
+          rounded
+          bg-primary-600 hover:bg-primary-700
+          text-white font-medium text-sm
+          transition-colors
+          flex-shrink-0
+        "
+        title="新建接口"
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+        <span>新建</span>
+      </button>
+
       {/* Tab list */}
       <div className="flex flex-1">
         {tabs.map((tab) => (
@@ -62,9 +92,10 @@ export default function RequestTabBar({
               border-r border-gray-200 dark:border-gray-800
               min-w-[120px] max-w-[200px]
               transition-colors
-              ${activeTabId === tab.id
-                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
-                : 'bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'
+              ${
+                activeTabId === tab.id
+                  ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
               }
             `}
           >
@@ -87,7 +118,9 @@ export default function RequestTabBar({
                 title={tab.name}
               >
                 {tab.name}
-                {tab.isModified && <span className="text-primary-500 ml-1">•</span>}
+                {tab.isModified && (
+                  <span className="text-primary-500 ml-1">•</span>
+                )}
               </span>
             )}
 
@@ -105,31 +138,23 @@ export default function RequestTabBar({
               "
               title="关闭"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
         ))}
       </div>
-
-      {/* Add button */}
-      <button
-        onClick={onAddTab}
-        className="
-          flex items-center justify-center
-          w-8 h-8 m-1
-          rounded
-          text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white
-          hover:bg-gray-200 dark:hover:bg-gray-800
-          transition-colors
-        "
-        title="新建接口"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
     </div>
   );
 }
