@@ -34,13 +34,13 @@ type EditorTab =
 
 // 从 URL 中解析查询参数
 function parseQueryParamsFromUrl(urlString: string): QueryParam[] {
-  const queryIndex = urlString.indexOf('?');
+  const queryIndex = urlString.indexOf("?");
   if (queryIndex === -1) {
     return [];
   }
 
   let queryString = urlString.substring(queryIndex + 1);
-  const hashIndex = queryString.indexOf('#');
+  const hashIndex = queryString.indexOf("#");
   if (hashIndex !== -1) {
     queryString = queryString.substring(0, hashIndex);
   }
@@ -50,17 +50,17 @@ function parseQueryParamsFromUrl(urlString: string): QueryParam[] {
   }
 
   const params: QueryParam[] = [];
-  const pairs = queryString.split('&');
+  const pairs = queryString.split("&");
 
   for (const pair of pairs) {
     if (!pair.trim()) continue;
 
-    const equalIndex = pair.indexOf('=');
+    const equalIndex = pair.indexOf("=");
     if (equalIndex === -1) {
       params.push({
         key: decodeURIComponent(pair.trim()),
-        value: '',
-        enabled: true
+        value: "",
+        enabled: true,
       });
     } else {
       const key = pair.substring(0, equalIndex);
@@ -68,7 +68,7 @@ function parseQueryParamsFromUrl(urlString: string): QueryParam[] {
       params.push({
         key: decodeURIComponent(key.trim()),
         value: decodeURIComponent(value.trim()),
-        enabled: true
+        enabled: true,
       });
     }
   }
@@ -78,8 +78,8 @@ function parseQueryParamsFromUrl(urlString: string): QueryParam[] {
 
 // 从 URL 中移除查询参数，返回基础 URL
 function getBaseUrl(urlString: string): string {
-  const queryIndex = urlString.indexOf('?');
-  const hashIndex = urlString.indexOf('#');
+  const queryIndex = urlString.indexOf("?");
+  const hashIndex = urlString.indexOf("#");
 
   if (queryIndex === -1) {
     return urlString;
@@ -92,6 +92,43 @@ function getBaseUrl(urlString: string): string {
   }
 
   return baseUrl;
+}
+
+// 从 request.body 对象中提取字符串类型的 body 内容
+function extractBodyString(
+  body: RequestConfig["body"],
+  bodyType: BodyType,
+): string | undefined {
+  if (!body) return undefined;
+
+  switch (bodyType) {
+    case "json":
+      return body.json;
+    case "raw":
+      return body.raw;
+    case "form-data":
+      if (body.form && body.form.length > 0) {
+        return body.form
+          .map(
+            (f) =>
+              `${encodeURIComponent(f.key)}=${encodeURIComponent(f.value)}`,
+          )
+          .join("&");
+      }
+      return undefined;
+    case "urlencoded":
+      if (body.urlencoded && body.urlencoded.length > 0) {
+        return body.urlencoded
+          .map(
+            (f) =>
+              `${encodeURIComponent(f.key)}=${encodeURIComponent(f.value)}`,
+          )
+          .join("&");
+      }
+      return undefined;
+    default:
+      return undefined;
+  }
 }
 
 // 将查询参数合并到 URL 中
@@ -111,8 +148,8 @@ function buildUrlWithParams(baseUrl: string, params: QueryParam[]): string {
     }
     const queryString = enabledParams
       .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
-      .join('&');
-    const separator = baseUrl.includes('?') ? '&' : '?';
+      .join("&");
+    const separator = baseUrl.includes("?") ? "&" : "?";
     return `${baseUrl}${separator}${queryString}`;
   }
 }
@@ -218,14 +255,17 @@ export default function RequestEditor({
   }, []);
 
   // URL 和 QueryParams 联动：当 queryParams 变化时，更新 URL
-  const handleQueryParamsChange = useCallback((newParams: QueryParam[]) => {
-    setQueryParams(newParams);
-    // 标记正在从 params 更新，避免循环
-    isUpdatingFromParamsRef.current = true;
-    // 将 queryParams 合并到当前 URL
-    const newUrl = buildUrlWithParams(url, newParams);
-    setUrl(newUrl);
-  }, [url]);
+  const handleQueryParamsChange = useCallback(
+    (newParams: QueryParam[]) => {
+      setQueryParams(newParams);
+      // 标记正在从 params 更新，避免循环
+      isUpdatingFromParamsRef.current = true;
+      // 将 queryParams 合并到当前 URL
+      const newUrl = buildUrlWithParams(url, newParams);
+      setUrl(newUrl);
+    },
+    [url],
+  );
 
   useEffect(() => {
     loadEnvironmentVariables();
@@ -684,8 +724,8 @@ export default function RequestEditor({
           onChange={(e) => handleUrlChange(e.target.value)}
           onPaste={(e) => {
             // 获取粘贴的内容
-            const pastedText = e.clipboardData.getData('text');
-            if (pastedText && pastedText.includes('?')) {
+            const pastedText = e.clipboardData.getData("text");
+            if (pastedText && pastedText.includes("?")) {
               // 阻止默认粘贴行为，手动处理
               e.preventDefault();
               // 直接处理粘贴的 URL
@@ -788,7 +828,10 @@ export default function RequestEditor({
       {/* Editor Content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-gray-900">
         {activeTab === "params" && (
-          <QueryParamsEditor params={queryParams} onChange={handleQueryParamsChange} />
+          <QueryParamsEditor
+            params={queryParams}
+            onChange={handleQueryParamsChange}
+          />
         )}
         {activeTab === "headers" && (
           <HeadersEditor headers={headers} onChange={setHeaders} />
