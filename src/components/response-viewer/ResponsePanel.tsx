@@ -363,6 +363,8 @@ function InlineConsole() {
     if (!currentResponse?.request) return "";
 
     const { method, url, headers, body } = currentResponse.request;
+    if (!method || !url) return "";
+
     let curl = `curl -X ${method} '${url}'`;
 
     // 添加请求头
@@ -372,8 +374,8 @@ function InlineConsole() {
       });
     }
 
-    // 添加请求体
-    if (body) {
+    // 添加请求体 - body 应该是字符串类型
+    if (body && typeof body === "string") {
       curl += ` \\\n  -d '${body.replace(/'/g, "'\\''")}'`;
     }
 
@@ -424,9 +426,15 @@ function InlineConsole() {
       const curlCommand = generateCurlCommand();
       if (curlCommand) {
         setRequestPayload(curlCommand);
+      } else if (
+        currentResponse.request?.method &&
+        currentResponse.request?.url
+      ) {
+        setRequestPayload(
+          `${currentResponse.request.method} ${currentResponse.request.url}`,
+        );
       } else {
-        const { method, url } = currentResponse.request;
-        setRequestPayload(`${method} ${url}`);
+        setRequestPayload("请求信息不可用");
       }
     }
 
