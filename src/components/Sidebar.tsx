@@ -102,6 +102,9 @@ export default function Sidebar({
 
       setItems(itemsWithMethod);
       setLoadedFolders(new Set());
+      setShowNewFolderInput(false);
+      setNewFolderName("");
+      setParentFolderUuid(undefined);
       // 加载成功后，触发环境变量加载
       onRefresh?.();
     } catch (err) {
