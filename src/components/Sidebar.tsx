@@ -101,6 +101,7 @@ export default function Sidebar({
       );
 
       setItems(itemsWithMethod);
+      setLoadedFolders(new Set());
       // 加载成功后，触发环境变量加载
       onRefresh?.();
     } catch (err) {
@@ -178,12 +179,14 @@ export default function Sidebar({
 
     try {
       const folderName = newFolderName.trim();
-      const targetParentUuid = parentFolderUuid || "root";
+      const targetParentUuid = parentFolderUuid ?? "root";
+      const parentUuidForApi =
+        targetParentUuid === "root" ? undefined : targetParentUuid;
 
       // v2: createFolder(name, parentUuid)
       const newFolderUuid = await apiClient.createFolder(
         folderName,
-        parentFolderUuid,
+        parentUuidForApi,
       );
 
       setItems((prev) => [
@@ -196,8 +199,8 @@ export default function Sidebar({
         },
       ]);
 
-      if (parentFolderUuid) {
-        setExpandedFolders((prev) => new Set(prev).add(parentFolderUuid));
+      if (targetParentUuid !== "root") {
+        setExpandedFolders((prev) => new Set(prev).add(targetParentUuid));
       }
 
       resetNewFolderInput();
@@ -497,6 +500,7 @@ export default function Sidebar({
                 e.stopPropagation();
                 setParentFolderUuid(folder.uuid);
                 setShowNewFolderInput(true);
+                setExpandedFolders((prev) => new Set(prev).add(folder.uuid));
               }}
               className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"
               title="新建子文件夹"
