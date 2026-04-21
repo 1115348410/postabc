@@ -113,17 +113,20 @@ export default function RequestTabBar({
   );
 
   return (
-    <div className="relative bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-      <div ref={scrollContainerRef} className="overflow-x-auto scrollbar-thin">
+    <div className="relative h-10 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      <div
+        ref={scrollContainerRef}
+        className="h-full overflow-x-auto overflow-y-hidden scrollbar-thin"
+      >
         <div
-          className={`flex items-center min-w-max ${isOverflowing ? "pr-24" : "pr-2"}`}
+          className={`flex h-full items-center min-w-max ${isOverflowing ? "pr-24" : "pr-2"}`}
         >
           {tabs.map((tab) => (
             <div
               key={tab.id}
               onClick={() => onTabClick(tab.id)}
               className={`
-              group flex items-center gap-2 px-3 py-2 cursor-pointer
+              group flex h-full items-center gap-2 px-3 cursor-pointer
               border-r border-gray-200 dark:border-gray-800
               min-w-[120px] max-w-[200px]
               transition-colors
