@@ -244,6 +244,7 @@ export default function Sidebar({
   };
 
   const handleSelectApi = async (api: ApiInfoDTO) => {
+    resetNewFolderInput();
     try {
       // v2: getApiDetail 返回 ApiInfoItemDTO
       const detail = await apiClient.getApiDetail(api.uuid);
@@ -545,6 +546,68 @@ export default function Sidebar({
         )}
       </div>
 
+      {showNewFolderInput && parentFolderUuid === folder.uuid && (
+        <div className="pl-6 pr-3 pb-2">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+            新建子文件夹
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCreateFolder();
+                if (e.key === "Escape") {
+                  resetNewFolderInput();
+                }
+              }}
+              placeholder="文件夹名称"
+              className="flex-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 focus:outline-none focus:border-primary-500"
+              autoFocus
+            />
+            <button
+              onClick={handleCreateFolder}
+              className="p-1 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+              title="确定"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={resetNewFolderInput}
+              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              title="取消"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 文件夹内的项目 */}
       {expandedFolders.has(folder.uuid) && (
         <div className="pl-6">
@@ -699,7 +762,7 @@ export default function Sidebar({
       </div>
 
       {/* 新建文件夹输入框 */}
-      {showNewFolderInput && (
+      {showNewFolderInput && !parentFolderUuid && (
         <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-800">
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
             {parentFolderUuid ? "新建子文件夹" : "新建文件夹"}
