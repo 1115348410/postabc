@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient, type ApiInfoDTO } from '../services/api-client';
 import type { RequestConfig } from '../types';
 
@@ -321,31 +321,6 @@ export default function SaveRequestDialog({
     );
   };
 
-  // 获取选中文件夹的完整路径
-  const getSelectedFolderPath = useCallback((folders: FolderNode[], targetUuid: string): string[] | null => {
-    for (const folder of folders) {
-      if (folder.uuid === targetUuid) {
-        return [folder.name];
-      }
-      if (folder.children && folder.children.length > 0) {
-        const childResult = getSelectedFolderPath(folder.children, targetUuid);
-        if (childResult) {
-          return [folder.name, ...childResult];
-        }
-      }
-    }
-    return null;
-  }, []);
-
-  // 使用 useMemo 计算选中路径，确保在 folderTree 或 selectedFolderUuid 变化时重新计算
-  const selectedPath = useMemo(() => {
-    if (!selectedFolderUuid || folderTree.length === 0) {
-      return null;
-    }
-    const pathArray = getSelectedFolderPath(folderTree, selectedFolderUuid);
-    return pathArray ? pathArray.join(' / ') : null;
-  }, [folderTree, selectedFolderUuid, getSelectedFolderPath]);
-
   if (!isOpen) return null;
 
   return (
@@ -392,13 +367,6 @@ export default function SaveRequestDialog({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               保存到文件夹
             </label>
-            
-            {/* 已选文件夹路径显示 */}
-            {selectedPath && (
-              <div className="mb-2 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded text-sm text-primary-700 dark:text-primary-300">
-                已选择: {selectedPath}
-              </div>
-            )}
             
             {/* 文件夹树 */}
             <div className="border border-gray-300 dark:border-gray-600 rounded max-h-60 overflow-y-auto bg-white dark:bg-gray-700">
