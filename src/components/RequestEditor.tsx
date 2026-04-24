@@ -323,8 +323,9 @@ export default function RequestEditor({
       setQueryParams(newParams);
       // 标记正在从 params 更新，避免循环
       isUpdatingFromParamsRef.current = true;
-      // 将 queryParams 合并到当前 URL
-      const newUrl = buildUrlWithParams(url, newParams);
+      // 将 queryParams 合并到当前 URL（使用不带查询参数的基础 URL）
+      const baseUrl = getBaseUrl(url);
+      const newUrl = buildUrlWithParams(baseUrl, newParams);
       setUrl(newUrl);
     },
     [url],
@@ -390,9 +391,12 @@ export default function RequestEditor({
       }
     }
 
+    // 将 queryParams 拼接到 URL 上
+    const finalUrl = buildUrlWithParams(url.trim(), queryParams);
+
     return {
       method,
-      url: url.trim(),
+      url: finalUrl,
       headers: requestHeaders,
       queryParams: queryParams.filter((p) => p.enabled && p.key),
       bodyType,
