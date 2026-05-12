@@ -477,52 +477,16 @@ function InlineConsole() {
       } else {
         setRequestPayload("请求信息不可用");
       }
-    }
 
-    // 处理 SSE 流式响应
-    if (currentResponse?.body?.type === "sse") {
-      const sseEvents = currentResponse.body.content as any[];
-      const totalEvents = sseEvents.length;
-      const processedCount = processedEventsCountRef.current;
-
-      // 只处理新增的事件
-      if (totalEvents > processedCount) {
-        const newLogs: string[] = [];
-
-        for (let i = processedCount; i < totalEvents; i++) {
-          const event = sseEvents[i];
-          const timestamp = new Date(
-            event.timestamp || Date.now(),
-          ).toLocaleTimeString();
-          const logMessage = `[${timestamp}] Event ${i + 1}: ${event.event || "message"}`;
-          const dataContent = event.data || "";
-
-          newLogs.push(logMessage);
-          newLogs.push(`  Data: ${dataContent}`);
-          if (event.id) {
-            newLogs.push(`  ID: ${event.id}`);
-          }
-          if (event.retry) {
-            newLogs.push(`  Retry: ${event.retry}ms`);
-          }
-        }
-
-        // 追加新日志
-        if (newLogs.length > 0) {
-          setSseLogs((prev) => [...prev, ...newLogs]);
-        }
-
-        processedEventsCountRef.current = totalEvents;
-      }
-    } else if (currentResponse?.body) {
-      // 非 SSE 响应，生成响应报文
-      if (isNewRequest) {
+      // 生成响应报文（SSE和非SSE都需要）
+      if (currentResponse.body) {
         const statusLine = `状态码：${currentResponse.status} ${currentResponse.statusText}`;
         const infoLine = `耗时：${currentResponse.time}ms | 大小：${(currentResponse.size / 1024).toFixed(2)} KB`;
 
         let content = "";
-        // 根据响应类型格式化内容
-        if (currentResponse.body.type === "json") {
+        if (currentResponse.body.type === "sse") {
+          content = `[SSE 流式响应 - 已接收 ${(currentResponse.body.content as any[]).length} 个事件]`;
+        } else if (currentResponse.body.type === "json") {
           try {
             content =
               typeof currentResponse.body.content === "string"
@@ -538,6 +502,55 @@ function InlineConsole() {
         }
 
         setResponsePayload(`${statusLine}\n${infoLine}\n\n${content}`);
+      }
+    }
+
+    // 处理 SSE 流式响应 - 更新事件计数
+    if (currentResponse?.body?.type === "sse") {
+      const sseEvents = currentResponse.body.content as any[];
+      const totalEvents = sseEvents.length;
+      const processedCount = processedEventsCountRef.current;
+
+      // 更新响应报文（更新事件计数）
+      if (totalEvents > processedCount) {
+        const statusLine = `状态码：${currentResponse.status} ${currentResponse.statusText}`;
+        const infoLine = `耗时：${currentResponse.time}ms | 大小：${(currentResponse.size / 1024).toFixed(2)} KB`;
+        const content = `[SSE 流式响应 - 已接收 ${totalEvents} 个事件]`;
+        setResponsePayload(`${statusLine}\n${infoLine}\n\n${content}`);
+      }
+
+      // 只处理新增的事件，最多保留最近 200 条日志
+      if (totalEvents > processedCount) {
+        const newLogs: string[] = [];
+        const startIndex = Math.max(processedCount, totalEvents - 100);
+
+        for (let i = startIndex; i < totalEvents; i++) {
+          const event = sseEvents[i];
+          const timestamp = new Date(
+            event.timestamp || Date.now(),
+          ).toLocaleTimeString();
+          const logMessage = `[${timestamp}] Event ${i + 1}: ${event.event || "message"}`;
+          const dataContent = (event.data || "").slice(0, 500);
+
+          newLogs.push(logMessage);
+          newLogs.push(`  Data: ${dataContent}${dataContent.length > 500 ? "..." : ""}`);
+          if (event.id) {
+            newLogs.push(`  ID: ${event.id}`);
+          }
+          if (event.retry) {
+            newLogs.push(`  Retry: ${event.retry}ms`);
+          }
+        }
+
+        // 追加新日志，最多保留 400 条日志（每个事件最多产生 4 条日志行）
+        if (newLogs.length > 0) {
+          setSseLogs((prev) => {
+            const combined = [...prev, ...newLogs];
+            return combined.slice(-400);
+          });
+        }
+
+        processedEventsCountRef.current = totalEvents;
       }
     }
   }, [currentResponse, generateCurlCommand]);
