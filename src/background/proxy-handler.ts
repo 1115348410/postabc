@@ -186,6 +186,7 @@ export class ProxyHandler {
           method: request.method,
           url: url,
           headers: Object.fromEntries(headers.entries()),
+          credentials: "omit",
           body: body
             ? typeof body === "string"
               ? body
@@ -313,6 +314,7 @@ export class ProxyHandler {
           method: request.method,
           url: url,
           headers: Object.fromEntries(headers.entries()),
+          credentials: "omit",
           body: body
             ? typeof body === "string"
               ? body
@@ -499,6 +501,7 @@ export class ProxyHandler {
           method: request.method,
           url: url,
           headers: Object.fromEntries(headers.entries()),
+          credentials: "omit",
           body: body
             ? typeof body === "string"
               ? body

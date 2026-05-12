@@ -48,6 +48,7 @@ export interface ResponseData {
     method: string;
     url: string;
     headers: Record<string, string>;
+    credentials?: "include" | "omit" | "same-origin";
     body?: string;
   };
 }

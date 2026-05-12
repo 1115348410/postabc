@@ -79,37 +79,52 @@ function isXmlContent(value: unknown): boolean {
 export default function ResponseBodyViewer({ content, contentType, className = '' }: ResponseBodyViewerProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('tree');
 
+  // 处理空内容的情况
+  const safeContent = useMemo(() => {
+    if (content === null || content === undefined) {
+      return '';
+    }
+    if (typeof content === 'number') {
+      return String(content);
+    }
+    return content;
+  }, [content]);
+
   // 检测内容类型
   const contentAnalysis = useMemo(() => {
-    const isJson = isJsonContent(content);
-    const isXml = isXmlContent(content);
-    const jsonParse = tryParseJson(content);
+    const isJson = isJsonContent(safeContent);
+    const isXml = isXmlContent(safeContent);
+    const jsonParse = tryParseJson(safeContent);
 
     return {
       isJson,
       isXml,
       canFormat: isJson || isXml,
-      parsedData: jsonParse.success ? jsonParse.data : content,
+      parsedData: jsonParse.success ? jsonParse.data : safeContent,
     };
-  }, [content]);
+  }, [safeContent]);
 
   // 格式化内容
   const formattedContent = useMemo(() => {
+    if (safeContent === '' || safeContent === null || safeContent === undefined) {
+      return '';
+    }
+
     if (viewMode === 'raw') {
-      return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+      return typeof safeContent === 'string' ? safeContent : JSON.stringify(safeContent, null, 2);
     }
 
     if (viewMode === 'pretty') {
       if (contentAnalysis.isJson) {
         return JSON.stringify(contentAnalysis.parsedData, null, 2);
       }
-      if (contentAnalysis.isXml && typeof content === 'string') {
-        return formatXml(content);
+      if (contentAnalysis.isXml && typeof safeContent === 'string') {
+        return formatXml(safeContent);
       }
     }
 
-    return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
-  }, [content, viewMode, contentAnalysis]);
+    return typeof safeContent === 'string' ? safeContent : JSON.stringify(safeContent, null, 2);
+  }, [safeContent, viewMode, contentAnalysis]);
 
   // 复制内容
   const handleCopy = () => {
@@ -178,7 +193,24 @@ export default function ResponseBodyViewer({ content, contentType, className = '
 
       {/* 内容区域 */}
       <div className="flex-1 overflow-hidden">
-        {viewMode === 'tree' && contentAnalysis.isJson ? (
+        {formattedContent === '' ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500">
+            <svg
+              className="w-12 h-12 mb-3 opacity-30"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <p className="text-sm">暂无内容</p>
+          </div>
+        ) : viewMode === 'tree' && contentAnalysis.isJson ? (
           <JsonTreePreview data={contentAnalysis.parsedData} maxHeight="100%" />
         ) : (
           <div className="h-full overflow-auto p-4">

@@ -362,7 +362,7 @@ function InlineConsole() {
   const generateCurlCommand = useCallback(() => {
     if (!currentResponse?.request) return "";
 
-    const { method, url, headers, body } = currentResponse.request;
+    const { method, url, headers, body, credentials } = currentResponse.request;
     if (!method || !url) return "";
 
     let curl = `curl -X ${method} '${url}'`;
@@ -380,6 +380,47 @@ function InlineConsole() {
     }
 
     return curl;
+  }, [currentResponse]);
+
+  // 生成请求详情描述
+  const generateRequestDetails = useCallback(() => {
+    if (!currentResponse?.request) return "";
+
+    const { method, url, headers, body, credentials } = currentResponse.request;
+    if (!method || !url) return "";
+
+    let details = `【请求】\n`;
+    details += `${method} ${url}\n`;
+
+    // 请求头
+    if (headers) {
+      details += `\n【请求头】\n`;
+      Object.entries(headers).forEach(([key, value]) => {
+        details += `${key}: ${String(value)}\n`;
+      });
+    }
+
+    // Credentials
+    details += `\n【凭证】\n`;
+    if (credentials === "omit") {
+      details += `不携带浏览器 Cookie (credentials: omit)\n`;
+    } else if (credentials === "include") {
+      details += `自动携带浏览器 Cookie (credentials: include)\n`;
+    } else {
+      details += `${credentials || "same-origin"}\n`;
+    }
+
+    // 请求体
+    if (body && typeof body === "string") {
+      details += `\n【请求体】\n`;
+      try {
+        details += JSON.stringify(JSON.parse(body), null, 2);
+      } catch {
+        details += body;
+      }
+    }
+
+    return details;
   }, [currentResponse]);
 
   // 复制请求报文
@@ -423,9 +464,9 @@ function InlineConsole() {
       setIsResponseExpanded(true);
 
       // 生成请求报文
-      const curlCommand = generateCurlCommand();
-      if (curlCommand) {
-        setRequestPayload(curlCommand);
+      const requestDetails = generateRequestDetails();
+      if (requestDetails) {
+        setRequestPayload(requestDetails);
       } else if (
         currentResponse.request?.method &&
         currentResponse.request?.url
@@ -817,7 +858,7 @@ export default function ResponsePanel({
       <div className="flex-1 overflow-hidden bg-white dark:bg-gray-950">
         {activeTabState === "body" && (
           <div className="h-full overflow-auto">
-            {currentResponse ? (
+            {currentResponse && currentResponse.body ? (
               <>
                 {/* JSON/文本响应 - 使用带格式化选项的查看器 */}
                 {(currentResponse.body.type === "json" ||
@@ -867,7 +908,7 @@ export default function ResponsePanel({
 
         {activeTabState === "headers" && (
           <div className="h-full overflow-auto p-4">
-            {currentResponse ? (
+            {currentResponse && currentResponse.headers ? (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-gray-500 dark:text-gray-500">
