@@ -71,7 +71,7 @@ function getValuePreview(value: unknown, type: NodeType): string {
     case 'string':
       const str = String(value);
       const decoded = decodeUnicode(str);
-      return `"${decoded.slice(0, 50)}${decoded.length > 50 ? '...' : ''}"`;
+      return `"${decoded}"`;
     case 'null':
       return 'null';
     case 'boolean':
