@@ -232,6 +232,69 @@ export default function RequestEditor({
   // 用于防止循环更新的标记
   const isUpdatingFromParamsRef = useRef(false);
 
+  // 使用 ref 追踪最新的 request 状态，用于组件卸载时保存
+  const methodRef = useRef(method);
+  const urlRef = useRef(url);
+  const headersRef = useRef(headers);
+  const queryParamsRef = useRef(queryParams);
+  const bodyTypeRef = useRef(bodyType);
+  const jsonBodyRef = useRef(jsonBody);
+  const rawBodyRef = useRef(rawBody);
+  const formDataFieldsRef = useRef(formDataFields);
+  const urlencodedFieldsRef = useRef(urlencodedFields);
+  const preRequestScriptRef = useRef(preRequestScript);
+  const testScriptRef = useRef(testScript);
+  const streamConfigRef = useRef(streamConfig);
+
+  // 每次渲染后更新 refs
+  useEffect(() => {
+    methodRef.current = method;
+    urlRef.current = url;
+    headersRef.current = headers;
+    queryParamsRef.current = queryParams;
+    bodyTypeRef.current = bodyType;
+    jsonBodyRef.current = jsonBody;
+    rawBodyRef.current = rawBody;
+    formDataFieldsRef.current = formDataFields;
+    urlencodedFieldsRef.current = urlencodedFields;
+    preRequestScriptRef.current = preRequestScript;
+    testScriptRef.current = testScript;
+    streamConfigRef.current = streamConfig;
+  });
+
+  // 组件卸载时保存当前状态到 store
+  useEffect(() => {
+    return () => {
+      const request: RequestConfig = {
+        method: methodRef.current,
+        url: urlRef.current.trim(),
+        headers: headersRef.current.filter((h) => h.enabled && h.key),
+        queryParams: queryParamsRef.current.filter((p) => p.enabled && p.key),
+        bodyType: bodyTypeRef.current,
+        body:
+          bodyTypeRef.current !== "none"
+            ? {
+                json: bodyTypeRef.current === "json" ? jsonBodyRef.current : undefined,
+                raw: bodyTypeRef.current === "raw" ? rawBodyRef.current : undefined,
+                form:
+                  bodyTypeRef.current === "form-data"
+                    ? formDataFieldsRef.current.filter((f) => f.enabled && f.key)
+                    : undefined,
+                urlencoded:
+                  bodyTypeRef.current === "urlencoded"
+                    ? urlencodedFieldsRef.current.filter((f) => f.enabled && f.key)
+                    : undefined,
+              }
+            : undefined,
+        preRequestScript: preRequestScriptRef.current,
+        testScript: testScriptRef.current,
+        timeout: 30000,
+        streamConfig: streamConfigRef.current,
+      };
+      updateTabRequest(tabId, request);
+    };
+  }, [tabId, updateTabRequest]);
+
   // URL 和 QueryParams 联动：当 URL 变化时，解析查询参数并同步到 queryParams
   const handleUrlChange = useCallback((newUrl: string) => {
     // 如果是从 params 更新触发的，跳过解析
@@ -260,8 +323,9 @@ export default function RequestEditor({
       setQueryParams(newParams);
       // 标记正在从 params 更新，避免循环
       isUpdatingFromParamsRef.current = true;
-      // 将 queryParams 合并到当前 URL
-      const newUrl = buildUrlWithParams(url, newParams);
+      // 将 queryParams 合并到当前 URL（使用不带查询参数的基础 URL）
+      const baseUrl = getBaseUrl(url);
+      const newUrl = buildUrlWithParams(baseUrl, newParams);
       setUrl(newUrl);
     },
     [url],
@@ -327,9 +391,12 @@ export default function RequestEditor({
       }
     }
 
+    // 将 queryParams 拼接到 URL 上
+    const finalUrl = buildUrlWithParams(url.trim(), queryParams);
+
     return {
       method,
-      url: url.trim(),
+      url: finalUrl,
       headers: requestHeaders,
       queryParams: queryParams.filter((p) => p.enabled && p.key),
       bodyType,

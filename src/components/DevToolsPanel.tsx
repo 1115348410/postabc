@@ -227,8 +227,9 @@ export default function DevToolsPanel() {
       setQueryParams(newParams);
       // 标记正在从 params 更新，避免循环
       isUpdatingFromParamsRef.current = true;
-      // 将 queryParams 合并到当前 URL
-      const newUrl = buildUrlWithParams(url, newParams);
+      // 将 queryParams 合并到当前 URL（使用不带查询参数的基础 URL）
+      const baseUrl = getBaseUrl(url);
+      const newUrl = buildUrlWithParams(baseUrl, newParams);
       setUrl(newUrl);
     },
     [url],
@@ -341,10 +342,11 @@ export default function DevToolsPanel() {
       return;
     }
 
-    // 构建请求对象
+    // 构建请求对象，将 queryParams 拼接到 URL 上
+    const finalUrl = buildUrlWithParams(sanitizedUrl, queryParams);
     const request: RequestConfig = {
       method,
-      url: sanitizedUrl,
+      url: finalUrl,
       headers: headers.filter((h) => h.enabled),
       queryParams: queryParams.filter((p) => p.enabled),
       bodyType,
