@@ -160,7 +160,7 @@ export class ProxyHandler {
         headers,
         body,
         signal: controller.signal,
-        credentials: "include",
+        credentials: "omit",
       });
 
       if (timeoutId) {
@@ -284,7 +284,7 @@ export class ProxyHandler {
         signal: AbortSignal.any
           ? AbortSignal.any([signal, timeoutController.signal])
           : signal, // 使用现代浏览器支持的AbortSignal.any，否则回退到主信号
-        credentials: "include",
+        credentials: "omit",
       });
 
       clearTimeout(timeoutId);
@@ -473,7 +473,7 @@ export class ProxyHandler {
         headers,
         body,
         signal: combinedSignal,
-        credentials: "include",
+        credentials: "omit",
       });
 
       // Parse response with streaming
