@@ -10,7 +10,7 @@ export class SSEParser {
   constructor(options: SSEParseOptions = {}) {
     this.options = {
       ignoreComments: true,
-      trimData: true,
+      trimData: false, // 默认不 trim，保留换行符和空格
       ...options,
     };
   }
