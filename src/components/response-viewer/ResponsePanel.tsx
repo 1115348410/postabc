@@ -94,21 +94,15 @@ function StreamBodyContent({
         const parsed = parseEventData(event);
         if (parsed && typeof parsed === "object") {
           const value = extractValue(parsed, rule.path);
-          // 过滤掉 undefined、null、空字符串和纯空白字符串
-          if (
-            value !== undefined &&
-            value !== null &&
-            String(value).trim() !== ""
-          ) {
+          // 只过滤 null 和 undefined，保留其他所有值（包括空字符串、换行符、空格等）
+          if (value !== undefined && value !== null) {
             values.push(value);
           }
         }
       }
 
-      // 最终过滤：确保所有值都是非空字符串
-      const validValues = values
-        .map((v) => String(v).trim())
-        .filter((v) => v !== "");
+      // 最终过滤：只过滤 null 和 undefined
+      const validValues = values.filter((v) => v !== undefined && v !== null);
 
       results.push({
         alias: rule.alias || rule.path,
